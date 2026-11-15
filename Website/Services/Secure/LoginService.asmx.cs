@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Collections.Concurrent;
 using System.Web;
 using System.Web.Services;
 using System.Web.Script.Services;
@@ -27,7 +28,8 @@ namespace Roblox.Website.Services.Secure
             FeatureDisabled,
             CaptchaChanged,
             IncorrectCredential,
-            CaptchaValidation
+            CaptchaValidation,
+            TooManyLoginAttempts
         }
 
         public class LoginResponse
@@ -47,14 +49,32 @@ namespace Roblox.Website.Services.Secure
             }
         }
 
+        // Per-process IP throttling. This is a conservative first layer; production
+        // deployments with multiple web servers should also enforce a shared edge limit.
+        private static readonly LoginAttemptLimiter LoginLimiter = new LoginAttemptLimiter();
+
         [WebMethod]
         [ScriptMethod(ResponseFormat = ResponseFormat.Json)]
         public LoginResponse ValidateLogin(string userName, string password, bool isCaptchaOn = false, string challenge = "", string captchaResponse = "")
         {
             var loginResponse = new LoginResponse();
+            string clientAddress = Context != null && Context.Request != null
+                ? Context.Request.UserHostAddress
+                : null;
+
+            // Do not trust X-Forwarded-For here: it is client-controlled unless a
+            // trusted reverse proxy explicitly strips and rewrites it.
+            if (!LoginLimiter.TryAcquire(clientAddress))
+            {
+                loginResponse.IsValid = false;
+                loginResponse.ThrowError(ErrorCodeEnum.TooManyLoginAttempts);
+                loginResponse.Message = "Too many login attempts. Please wait a few minutes and try again.";
+                return loginResponse;
+            }
 
             if (Membership.ValidateUser(userName, password))
             {
+                LoginLimiter.Reset(clientAddress);
                 // Use a session cookie; do not persist authentication across browser restarts.
                 FormsAuthentication.SetAuthCookie(userName, false);
                 loginResponse.IsValid = true;
@@ -68,6 +88,78 @@ namespace Roblox.Website.Services.Secure
             }
 
             return loginResponse;
+        }
+
+        private sealed class LoginAttemptLimiter
+        {
+            private const int MaximumAttempts = 20;
+            private static readonly TimeSpan WindowLength = TimeSpan.FromMinutes(10);
+            private readonly ConcurrentDictionary<string, AttemptWindow> _windows =
+                new ConcurrentDictionary<string, AttemptWindow>();
+            private int _operations;
+
+            public bool TryAcquire(string address)
+            {
+                string key = String.IsNullOrWhiteSpace(address) ? "unknown" : address;
+                DateTime now = DateTime.UtcNow;
+                AttemptWindow window = _windows.GetOrAdd(key, _ => new AttemptWindow(now));
+
+                lock (window)
+                {
+                    if (now - window.StartedUtc >= WindowLength)
+                    {
+                        window.StartedUtc = now;
+                        window.Count = 0;
+                    }
+
+                    if (window.Count >= MaximumAttempts)
+                        return false;
+
+                    window.Count++;
+                }
+
+                if (System.Threading.Interlocked.Increment(ref _operations) % 256 == 0)
+                    RemoveExpiredWindows(now);
+
+                return true;
+            }
+
+            public void Reset(string address)
+            {
+                string key = String.IsNullOrWhiteSpace(address) ? "unknown" : address;
+                AttemptWindow window;
+                if (_windows.TryGetValue(key, out window))
+                {
+                    lock (window)
+                    {
+                        window.Count = 0;
+                        window.StartedUtc = DateTime.UtcNow;
+                    }
+                }
+            }
+
+            private void RemoveExpiredWindows(DateTime now)
+            {
+                foreach (var entry in _windows)
+                {
+                    if (now - entry.Value.StartedUtc >= WindowLength)
+                    {
+                        AttemptWindow ignored;
+                        _windows.TryRemove(entry.Key, out ignored);
+                    }
+                }
+            }
+
+            private sealed class AttemptWindow
+            {
+                public AttemptWindow(DateTime startedUtc)
+                {
+                    StartedUtc = startedUtc;
+                }
+
+                public DateTime StartedUtc;
+                public int Count;
+            }
         }
     }
 }
