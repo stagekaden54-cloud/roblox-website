@@ -13,8 +13,10 @@ namespace Roblox.Website.Controllers
     [CookieConstraintAttributeWithRedirect]
     public class AuthenticationController : Controller
     {
-        // GET: Authentication/Logout
+        // POST: Authentication/Logout
         [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Logout()
         {
             FormsAuthentication.SignOut();
