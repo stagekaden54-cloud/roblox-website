@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Collections.Concurrent;
 using System.Web;
 using System.Web.Services;
 using System.Web.Script.Services;
@@ -94,43 +93,45 @@ namespace Roblox.Website.Services.Secure
         {
             private const int MaximumAttempts = 20;
             private static readonly TimeSpan WindowLength = TimeSpan.FromMinutes(10);
-            private readonly ConcurrentDictionary<string, AttemptWindow> _windows =
-                new ConcurrentDictionary<string, AttemptWindow>();
+            private readonly object _sync = new object();
+            private readonly Dictionary<string, AttemptWindow> _windows =
+                new Dictionary<string, AttemptWindow>();
             private int _operations;
 
             public bool TryAcquire(string address)
             {
                 string key = String.IsNullOrWhiteSpace(address) ? "unknown" : address;
                 DateTime now = DateTime.UtcNow;
-                AttemptWindow window = _windows.GetOrAdd(key, _ => new AttemptWindow(now));
 
-                lock (window)
+                lock (_sync)
                 {
-                    if (now - window.StartedUtc >= WindowLength)
+                    AttemptWindow window;
+                    if (!_windows.TryGetValue(key, out window) ||
+                        now - window.StartedUtc >= WindowLength)
                     {
-                        window.StartedUtc = now;
-                        window.Count = 0;
+                        window = new AttemptWindow(now);
+                        _windows[key] = window;
                     }
 
                     if (window.Count >= MaximumAttempts)
                         return false;
 
                     window.Count++;
+
+                    if (++_operations % 256 == 0)
+                        RemoveExpiredWindows(now);
+
+                    return true;
                 }
-
-                if (System.Threading.Interlocked.Increment(ref _operations) % 256 == 0)
-                    RemoveExpiredWindows(now);
-
-                return true;
             }
 
             public void Reset(string address)
             {
                 string key = String.IsNullOrWhiteSpace(address) ? "unknown" : address;
-                AttemptWindow window;
-                if (_windows.TryGetValue(key, out window))
+                lock (_sync)
                 {
-                    lock (window)
+                    AttemptWindow window;
+                    if (_windows.TryGetValue(key, out window))
                     {
                         window.Count = 0;
                         window.StartedUtc = DateTime.UtcNow;
@@ -140,14 +141,15 @@ namespace Roblox.Website.Services.Secure
 
             private void RemoveExpiredWindows(DateTime now)
             {
+                var expiredKeys = new List<string>();
                 foreach (var entry in _windows)
                 {
                     if (now - entry.Value.StartedUtc >= WindowLength)
-                    {
-                        AttemptWindow ignored;
-                        _windows.TryRemove(entry.Key, out ignored);
-                    }
+                        expiredKeys.Add(entry.Key);
                 }
+
+                foreach (string key in expiredKeys)
+                    _windows.Remove(key);
             }
 
             private sealed class AttemptWindow
