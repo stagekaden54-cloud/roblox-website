@@ -175,7 +175,7 @@ a img {
     width:140px;
     margin:0;
     float:none;
-    background: url("/Images/Branding/block16-logo.svg") no-repeat;
+    background: url("/Images/Branding/block16-logo.svg") no-repeat center;\n    background-size: 140px 42px;
 }
 
 #SmallHeaderContainer #Banner #Authentication {
