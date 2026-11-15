@@ -42,62 +42,11 @@ namespace Roblox.Website.Providers
                string email, string passwordQuestion, string passwordAnswer,
                bool isApproved, object providerUserKey, out MembershipCreateStatus status)
         {
-            try
-            {
-                ValidatePasswordEventArgs args =
-                   new ValidatePasswordEventArgs(username, password, true);
-                OnValidatingPassword(args);
-
-                if (args.Cancel)
-                {
-                    status = MembershipCreateStatus.InvalidPassword;
-                    return null;
-                }
-
-                if (!Signup.ValidateUserName(username))
-                {
-                    status = MembershipCreateStatus.InvalidUserName;
-                    return null;
-                }
-
-                if (GetUser(username) != null)
-                {
-                    status = MembershipCreateStatus.DuplicateUserName;
-                    return null;
-                }
-
-                if (email != null)
-                {
-                    // Using CredentialValidator to validate email
-                    var credentialValidator = Global.AuthenticationDomainFactories.CredentialValidator;
-                    // We need a userId for the ValidateEmail method, using 0 as a placeholder
-                    if (!credentialValidator.ValidateEmail(0, email))
-                    {
-                        status = MembershipCreateStatus.InvalidEmail;
-                        return null;
-                    }
-
-                    if (RequiresUniqueEmail && !Roblox.Signup.CheckEmailUsability(email))
-                    {
-                        status = MembershipCreateStatus.DuplicateEmail;
-                        return null;
-                    }
-                }
-
-                // Finally create the user
-                var passwordHash = HashGenerator.HashString(string.Empty, password);
-                Roblox.Signup.CreateNew(username, passwordHash, email);
-
-                // Do this last
-                status = MembershipCreateStatus.Success;
-                return GetUser(username, true);
-            }
-            catch (Exception ex)
-            {
-                ExceptionHandler.LogException(ex);
-                status = MembershipCreateStatus.ProviderError;
-                return null;
-            }
+            // Fail closed: the legacy implementation stored an unsalted, single-pass
+            // SHA-256 password hash. Do not create accounts until a real password
+            // service (IPasswordsClient) is integrated and verified.
+            status = MembershipCreateStatus.ProviderError;
+            return null;
         }
 
         public override void UpdateUser(MembershipUser user)
