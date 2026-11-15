@@ -169,3 +169,12 @@ The legacy admin pages are intentionally unavailable after this hardening change
 - The legacy Google Analytics helper, Google/Mongo event listener modules, error-tracker JavaScript, and event-manager JavaScript remain in some script bundles for compatibility. The reviewed shared layouts no longer initialize their legacy tracker partials; the event-manager partial is inert; and the reviewed standalone error-tracker view is inert. A complete repository-wide caller/configuration and deployed-network audit is still needed before claiming no analytics or external telemetry can ever occur.
 - The old `VideoPreRoll.js` implementation remains available because game-launch code references its object and methods. The BLOCK16 view forces the feature off. No external video-ad provider loader was found in the reviewed partial, but the old module should be retired once the launcher no longer depends on it.
 - Re-fetched the edited views, layouts, bundle configuration, and client telemetry script from `block16-rebrand`. This was static source verification only; no .NET build, browser network capture, runtime game-launch test, or dependency vulnerability scan was performed.
+
+
+## Additional profile output-encoding fixes
+
+- Encoded the public profile heading's display name before assigning it to the Web Forms label.
+- Encoded the dynamic last-location text before assigning it to the online/in-game status controls.
+- Encoded the previous-usernames string specifically for its HTML title attribute. This string was previously concatenated into an HTML fragment without attribute encoding.
+- Changed the badge description tooltip and badge name data bindings to encoded data-binding expressions (`<%#: ... %>`) so stored badge text is not emitted as raw markup.
+- Re-fetched the edited profile code-behind and badge markup from `block16-rebrand`. This is a targeted XSS mitigation, not a complete review of all Web Forms controls, templates, and user-generated content.
