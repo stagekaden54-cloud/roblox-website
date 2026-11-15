@@ -60,6 +60,7 @@
 
     </a>
 
+    <%= System.Web.Helpers.AntiForgery.GetHtml() %>
     <script type="text/javascript">
         ; $(function () {
             // this is currently broken for some reason, so instead I've set the class of the over13icon
@@ -67,12 +68,11 @@
 
             $("#lsLoginStatus").click(
                 function () {
-                    var form = $(this).closest('form');
-                    if (form.length == 0) {
-                        form = $("<form></form>").appendTo("body");
-                    }
+                    var form = $("<form></form>");
                     form.attr('action', '/authentication/logout');
                     form.attr('method', 'post');
+                    form.append($('input[name="__RequestVerificationToken"]').first().clone());
+                    form.appendTo("body");
                     form.submit();
                 }
             );
