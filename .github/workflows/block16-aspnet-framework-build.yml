@@ -34,7 +34,7 @@ jobs:
   build:
     name: Build legacy ASP.NET website
     runs-on: windows-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
 
     steps:
       - name: Check out source
@@ -46,25 +46,67 @@ jobs:
       - name: Add NuGet
         uses: NuGet/setup-nuget@v2
 
+      - name: Install and locate ASP.NET Web Application build tools
+        shell: pwsh
+        run: |
+          $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe'
+          $vsPath = & $vswhere -latest -products '*' -requires Microsoft.Component.MSBuild -property installationPath
+          if (-not $vsPath -or -not (Test-Path $vsPath)) {
+            throw 'A Visual Studio installation with MSBuild was not found on this runner.'
+          }
+
+          $msbuildExe = Join-Path $vsPath 'MSBuild\Current\Bin\MSBuild.exe'
+          if (-not (Test-Path $msbuildExe)) {
+            throw "MSBuild was not found under the selected Visual Studio installation: $vsPath"
+          }
+
+          $msbuildVersion = (Get-Item $msbuildExe).VersionInfo.ProductVersion
+          $vsVersion = "$(([int]($msbuildVersion.Split('.')[0])).ToString()).0"
+          $vsToolsPath = Join-Path $vsPath "MSBuild\Microsoft\VisualStudio\v$vsVersion"
+          $targets = Join-Path $vsToolsPath 'WebApplications\Microsoft.WebApplication.targets'
+
+          if (-not (Test-Path $targets)) {
+            $installer = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vs_installer.exe'
+            if (-not (Test-Path $installer)) {
+              throw "Visual Studio Installer was not found; cannot add WebBuildTools to $vsPath"
+            }
+
+            Write-Host "Installing Microsoft.VisualStudio.Workload.WebBuildTools into $vsPath"
+            $process = Start-Process -FilePath $installer -ArgumentList @(
+              'modify',
+              '--installPath', $vsPath,
+              '--add', 'Microsoft.VisualStudio.Workload.WebBuildTools',
+              '--includeRecommended',
+              '--quiet',
+              '--wait',
+              '--norestart'
+            ) -Wait -PassThru
+
+            if ($process.ExitCode -ne 0 -and $process.ExitCode -ne 3010) {
+              throw "Visual Studio Installer failed with exit code $($process.ExitCode)"
+            }
+          }
+
+          if (-not (Test-Path $targets)) {
+            throw "ASP.NET Web Application targets are still missing after installing WebBuildTools: $targets"
+          }
+
+          "VSToolsPath=$vsToolsPath" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "VisualStudioVersion=$vsVersion" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          Write-Host "Using Visual Studio: $vsPath"
+          Write-Host "Using WebApplication targets: $targets"
+
       - name: Show build environment
         shell: pwsh
         run: |
           Write-Host "Runner: $env:RUNNER_OS"
+          Write-Host "VisualStudioVersion: $env:VisualStudioVersion"
+          Write-Host "VSToolsPath: $env:VSToolsPath"
           msbuild -version
           nuget help | Select-Object -First 2
 
       - name: Restore NuGet packages
         run: nuget restore Website/Roblox.Website.sln -NonInteractive -ConfigFile nuget.config
 
-      - name: Verify ASP.NET Web Application build targets
-        shell: pwsh
-        run: |
-          $targets = 'C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Microsoft\VisualStudio\v17.0\WebApplications\Microsoft.WebApplication.targets'
-          if (-not (Test-Path $targets)) {
-            Write-Error "Required Visual Studio 2022 WebApplication targets were not found at: $targets"
-            exit 1
-          }
-          Write-Host "Found WebApplication targets: $targets"
-
       - name: Build ASP.NET website solution
-        run: msbuild Website/Roblox.Website.sln /m /p:Configuration=Release "/p:Platform=Any CPU" /p:VisualStudioVersion=17.0 /p:RestorePackagesConfig=true /verbosity:minimal
+        run: msbuild Website/Roblox.Website.sln /m /p:Configuration=Release "/p:Platform=Any CPU" /p:RestorePackagesConfig=true /verbosity:minimal
