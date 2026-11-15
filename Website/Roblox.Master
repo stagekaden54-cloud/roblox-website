@@ -25,19 +25,18 @@
 <!-- MachineID: <%: Environment.MachineName %> -->
 <head ID="Head1" runat="server">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,requiresActiveX=true" />
-    <title><%: string.IsNullOrWhiteSpace(Page.Title) ? "ROBLOX.com" : Page.Title %></title>
+    <title><%: string.IsNullOrWhiteSpace(Page.Title) ? "BLOCK16" : Page.Title %></title>
 
     <asp:PlaceHolder ID="CssBundlePlaceholder" runat="server" />
 
-    <link rel="icon" type="image/x-icon" href="~/favicon.ico" runat="server" />
+    <link rel="icon" type="image/x-icon" href="~/Images/Branding/block16-icon.svg" runat="server" />
     <link rel="shortcut icon" type="image/x-icon" href="~/favicon.ico" runat="server" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta http-equiv="Content-Language" content="en-us" />
-    <meta name="author" content="ROBLOX Corporation" />
+    <meta name="author" content="BLOCK16" />
     <meta ID="metadescription" name="description" content="" runat="server" />
     <meta ID="metakeywords" name="keywords" content="" runat="server" />
 
-    <rbx:GoogleAnalytics runat="server" />
     <%-- TODO: CdnFallbackExpression for these --%>
 <script type='text/javascript' src='//ajax.aspnetcdn.com/ajax/jQuery/jquery-1.7.2.min.js'></script>
 <script type='text/javascript'>window.jQuery || document.write("<script type='text/javascript' src='/js/jquery/jquery-1.7.2.min.js'><\/script>")</script>
@@ -45,7 +44,6 @@
 <script type='text/javascript'>window.Sys || document.write("<script type='text/javascript' src='/js/Microsoft/MicrosoftAjax.js'><\/script>")</script>
     <asp:PlaceHolder ID="ScriptBundlePlaceholder" runat="server" />
     <asp:PlaceHolder ID="PageScriptBundlePlaceholder" runat="server" />
-    <rbx:JavascriptErrorTracker runat="server" />
 </head>
 <body class="">
     <script type="text/javascript">Roblox.XsrfToken.setToken('');</script>
@@ -63,7 +61,6 @@
 
             <div class=""><div class="">
                 <div id="MasterContainer" >
-                    <rbx:RobloxEventManager runat="server" />
                     <script type="text/javascript">Roblox.FixedUI.gutterAdsEnabled = false;</script>
 
                     <div id="Container">
@@ -109,7 +106,6 @@
         <div id="ChatContainer" style="position:fixed;bottom:0;right:0;z-index:1000;">
         </div>
 
-        <rbx:UrchinTracker runat="server" />
     </form>
 
     <rbx:ClientInstaller runat="server" />
