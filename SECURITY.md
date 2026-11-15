@@ -109,3 +109,14 @@ The legacy admin pages are intentionally unavailable after this hardening change
 - The old tracking partial/view files and JavaScript assets remain in the repository for now, but this experimental layout no longer loads them. Other layouts or individual pages may still reference tracking code; a repository-wide telemetry inventory is still required before claiming that all tracking has been removed.
 - The jQuery and Microsoft Ajax CDN scripts remain because they are application dependencies, not the tracking integrations targeted in this pass. They are third-party resource requests and should be reviewed separately for dependency freshness, integrity, availability, and privacy.
 - Re-fetched the edited layout from `block16-rebrand` and verified that none of the listed tracking partials or the Facebook SDK loader remain in it. No browser/network inspection or runtime test has yet confirmed the actual requests made by a deployed site.
+
+
+## Primary layout tracking removal — follow-up
+
+- Removed Google Analytics partials, the JavaScript error-tracker initializer, event-manager initialization, new-user event trigger, and vendor signup tracking pixel from `Website/Views/Shared/_Layout.cshtml`, the primary shared layout.
+- The earlier experimental-layout removal remains in place.
+- The primary layout's Google Analytics partial had initialized multiple Google Analytics accounts; its removal prevents that layout from injecting the legacy Google Analytics loader through this partial.
+- The primary layout's event-manager partial initialized both the legacy Roblox event listener and Google event listener. Removing it prevents those listeners from being initialized through the primary layout.
+- Tracking-related JavaScript files are still present in shared script bundles and the repository. The inspected files do not independently load Google Analytics unless the analytics partial defines `_gaq`, and event listeners require initialization; however, other call sites and individual pages still need a complete reference audit before declaring telemetry fully disabled.
+- The application also contains first-party game/client metrics that POST to same-origin `/game/report-stats` and `/game/report-event` endpoints. These are not third-party trackers, but they are telemetry and should be documented in BLOCK16's privacy notice if retained.
+- Both shared layouts were re-fetched after the edits and checked for the removed tracker partials and Facebook SDK loader. This is static source verification only; no deployed-browser network capture or runtime test has been performed.
