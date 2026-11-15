@@ -99,3 +99,13 @@ The legacy admin pages are intentionally unavailable after this hardening change
 - The website package manifest contains a BCrypt.Net-Next dependency, but this pass did not prove that the disabled account-creation path has been correctly wired to it. Do not enable account creation solely because the package exists.
 - The profile-focused output-encoding pass now includes profile description, profile heading, header label, empty-groups message, profile chat username, and invite-to-party username interpolation. This is not a complete site-wide XSS audit; all remaining Web Forms controls, MVC views, client templates, and API-fed markup still need review.
 - Changes are committed to `block16-rebrand` and were re-fetched for verification. No .NET Framework build, browser test, or runtime security test was run in this pass.
+
+
+## Third-party tracking reduction — latest pass
+
+- Removed Google Analytics (both duplicate partial inclusions), Google AdWords conversion/remarketing tracking, the Facebook SDK loader, the vendor-specific signup tracking pixel, the event-manager partial, and the JavaScript error-tracker partial from `Website/Views/Shared/Experimental/_Layout.cshtml`.
+- The event manager was not simply a local diagnostic: its inspected setup pointed the event listener at `roblox.com/Game/EventTracker.ashx` and registered page-view/return-visit events. It is no longer initialized by this layout.
+- The JavaScript error tracker was configured to route exceptions through its Google Analytics pixel path. Its initialization has been removed from this layout.
+- The old tracking partial/view files and JavaScript assets remain in the repository for now, but this experimental layout no longer loads them. Other layouts or individual pages may still reference tracking code; a repository-wide telemetry inventory is still required before claiming that all tracking has been removed.
+- The jQuery and Microsoft Ajax CDN scripts remain because they are application dependencies, not the tracking integrations targeted in this pass. They are third-party resource requests and should be reviewed separately for dependency freshness, integrity, availability, and privacy.
+- Re-fetched the edited layout from `block16-rebrand` and verified that none of the listed tracking partials or the Facebook SDK loader remain in it. No browser/network inspection or runtime test has yet confirmed the actual requests made by a deployed site.
