@@ -1,9 +1,5 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
 using System.Web.UI;
-using System.Web.UI.WebControls;
 
 namespace Roblox.Website
 {
@@ -11,17 +7,12 @@ namespace Roblox.Website
     {
         protected void Page_PreInit(object sender, EventArgs e)
         {
-            // Immediately redirect
+            // Signed-in visitors continue to their existing account home.
             if (Request.IsAuthenticated)
                 Response.Redirect("~/My/Home.aspx", true);
 
-            // Unauthenticated: serve the signup page content but keep the root URL
-            // This mirrors the old behavior where '/' shows signup without changing the address bar.
-            Server.Transfer("~/Login/Signup.aspx", true);
-        }
-
-        protected void Page_Load(object sender, EventArgs e)
-        {
+            // Anonymous visitors see the BLOCK16 project homepage.
+            // Do not transfer them to the legacy signup form.
         }
     }
 }
