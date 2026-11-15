@@ -59,7 +59,7 @@
                     if (false)
                     {
                 %>
-                    <div class="Item" onclick="Party.InviteUser('<%=UserProfile.ProfileUserName %>');"><%=Resources.GetString("ActionInviteToParty") %></div>
+                    <div class="Item" onclick="Party.InviteUser('<%=System.Web.HttpUtility.HtmlAttributeEncode(System.Web.HttpUtility.JavaScriptStringEncode(UserProfile.ProfileUserName ?? string.Empty)) %>');"><%=Resources.GetString("ActionInviteToParty") %></div>
                 <%
                     }
                     if (UserProfile.IsBlockButtonVisible)
