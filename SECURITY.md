@@ -189,3 +189,16 @@ The reviewed `Website/Views/Game/ClientInstaller.cshtml` references external `im
 An asset audit note was added at `Website/Images/Install/README.md`. The legacy image files were intentionally not deleted or edited: repository-wide reference tracing is incomplete, and the actual BLOCK16 Windows installer/package format, publisher identity, signing, and supported Windows versions have not yet been established. Replacing words inside the old screenshots would preserve obsolete and potentially misleading steps.
 
 Verification: static source and image inspection only. GitHub code search reported incomplete results, so global reference absence is not established. No build, installer test, browser test, or runtime test was performed.
+
+
+## Windows client build artifact review — 2026-11-15
+
+The latest successful Windows client workflow found in `stagekaden54-cloud/roblox-master-2016` is Run #88 on branch `windows-debug-vmprotect-compat`, source commit `364cc3964d4c73a732e447279f92fe6b729040c4`. The run completed successfully and produced artifact `windows-client-debug-win32` (artifact ID `14162191940`). The artifact ZIP SHA-256 is `a019c2f403dca107fe6c6975e75e59af5765e7dd759605380c1ee2e992230ab2`.
+
+The artifact contains `RobloxPlayerBetaRaw.exe` (PE32, Intel x86; 52,802,048 bytes). Its SHA-256 is `1a5da398e44cce5f2c815aebc6d89e43bef46d2fa03c2428c4620bba3324d5cd`. The build log reports MSBuild exit code 0. However, the workflow explicitly builds only `Debug|Win32`, names the workflow/job as a Debug build, and outputs the raw debug executable. It is not a production Release build.
+
+Static PE inspection found an empty Authenticode security directory (no embedded signature). Static strings still include Roblox branding and Roblox-specific endpoints/registry paths, including `ROBLOX Corporation`, `www.roblox.com`, and legacy account-related prompts. This inspection does not establish that the executable is safe, complete, or suitable for public distribution.
+
+**Release decision:** Do not publish Run #88's executable as the official BLOCK16 Windows client or wire it into the public download flow. Keep it as a CI/debug artifact only. Before public release, the client needs an appropriately licensed and reviewed source baseline, BLOCK16 identity/configuration, a production Release build, dependency/runtime packaging review, security and privacy review of its network behavior, malware scanning, Authenticode signing under the legitimate publisher identity, and installation/launch testing on supported Windows versions. The current CI artifact expires after seven days and is not a durable public download location.
+
+The legacy `ClientInstaller.cshtml` remains an obsolete plugin-era flow and is not a substitute for a BLOCK16 EXE download page. No executable was added to this website branch and no public download link was created.
