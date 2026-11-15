@@ -137,3 +137,14 @@ The legacy admin pages are intentionally unavailable after this hardening change
 - The primary layout contains an `fb-root` element and an old Facebook XML namespace, but the Facebook SDK loader was removed. Those markup remnants alone do not make a Facebook network request.
 - `GPTAdScript.js` is included in the base bundle. It should be reviewed alongside the ad-related page features before removing it; ad delivery and analytics are separate concerns.
 - No code was changed in this review pass. Findings are static source observations; browser network capture, server endpoint inspection, dependency advisory scanning, and runtime testing remain outstanding.
+
+
+## Client telemetry default-off change
+
+- Changed `Website/js/EventTracker.js` so `transmitMetrics` defaults to `false`. Game-launch and client-install timing/event names are no longer POSTed by this module unless a future caller explicitly enables transmission.
+- Removed the unnecessary `crossDomain: true` and `withCredentials: true` AJAX options from its relative same-origin reporting URLs. Same-origin browser requests use the normal same-origin behavior.
+- Local event timing and the in-memory `localEventLog` remain available; this change does not remove those local diagnostics.
+- The repository tree did not contain an obvious `/game/report-stats` or `/game/report-event` handler by filename, so server-side behavior, storage, retention, and access controls remain unverified. The client-side default-off change is not proof that all telemetry has been eliminated.
+- `Website/UserControls/TrackingPixels/RobloxEventManager.ascx` contains an explicit `RobloxEventManager.initialize(true)` and configures an external `roblox.com/Game/EventTracker.ashx` listener. The two shared layouts reviewed earlier no longer include this partial, but the separate `/Tracking/EventManager` view and any other callers must be checked before removing the legacy event-manager subsystem.
+- The legacy video pre-roll view currently sets `Roblox.VideoPreRoll.showVideoPreRoll = false`; however, the view is included by the game place-launcher view and the ad scripts remain bundled. The newer `videoPreRollDFP.js` contains age/segment, gender, game-genre, place-ID, and related ad-targeting fields. Do not enable this integration for BLOCK16 without a clear privacy policy, data-minimization review, and explicit product decision.
+- Re-fetched the updated `EventTracker.js` from `block16-rebrand` after the change. This was source-level verification only; no browser network capture or runtime test was performed.
