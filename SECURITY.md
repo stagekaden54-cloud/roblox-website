@@ -75,3 +75,14 @@ The legacy admin pages are intentionally unavailable after this hardening change
 - These changes have been committed to `block16-rebrand`; the original `2016` branch remains untouched. No compile or runtime test has yet been performed, so the anti-forgery helper reference and Web Forms rendering must be verified in a .NET Framework 4.7.2 build/runtime.
 
 - The legacy cookie-constraint fulfillment page now rejects external, protocol-relative, and backslash-based return URLs, falling back to the site root. This closes an additional open-redirect path found while tracing the mock constraint flow.
+
+
+## User-generated content audit — latest pass
+
+- Encoded `ProfileViewModel.ProfileDisplayName` before inserting it into the profile sets heading in `Website/UserControls/UserContent/SetsPane.ascx`.
+- Encoded the profile display name before assigning it to the Web Forms label in `Website/UserControls/UserContent/HeaderPane.ascx.cs`. Web Forms label text should not be assumed to HTML-encode arbitrary content automatically.
+- Previously hardened profile descriptions, profile chat-name JavaScript interpolation, and showcased place names remain encoded.
+- The sets-pane JavaScript formatter applies an `escapeHTML()` conversion to string fields before inserting them into its HTML template. This should still be tested in-browser with hostile test strings; static inspection alone does not establish complete safety.
+- The image upload page (`Website/UploadMedia/PostImage.aspx.cs`) currently has no upload implementation. The comments handler returns a fixed placeholder response, and the raw-asset handler returns a hard-coded CDN URL. These are incomplete features, not evidence of a working upload/comments pipeline. Do not enable uploads or treat these endpoints as production functionality without a designed and tested implementation.
+- This pass is a focused review of selected profile and endpoint files, not a complete XSS or upload audit. Additional Web Forms controls, JavaScript templates, API handlers, and data sources remain to be inspected.
+- Changes were committed to `block16-rebrand`; the original `2016` branch was not modified. Source files were re-fetched after edits. No .NET Framework build, browser test, integration test, or penetration test was run in this pass.
