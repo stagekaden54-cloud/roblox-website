@@ -40,6 +40,7 @@ namespace Roblox.Website.Controllers
         // POST: NewLogin
         [Route("")]
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Index(LoginViewModel model)
         {
             if (!Request.IsAuthenticated)
@@ -55,7 +56,7 @@ namespace Roblox.Website.Controllers
                         {
                             // We've been able to validate the user's auth request, now authenticate and redirect
                             FormsAuthentication.SetAuthCookie(model.Username, true);
-                            return Redirect(model.ReturnUrl);
+                            return Redirect(GetSafeReturnUrl(model.ReturnUrl));
                         }
                         else
                         {
@@ -73,7 +74,12 @@ namespace Roblox.Website.Controllers
                 return View(model);
             }
 
-            return Redirect(model.ReturnUrl);
+            return Redirect(GetSafeReturnUrl(model.ReturnUrl));
+        }
+
+        private string GetSafeReturnUrl(string returnUrl)
+        {
+            return Url.IsLocalUrl(returnUrl) ? returnUrl : "/";
         }
     }
 }
