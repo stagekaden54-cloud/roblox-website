@@ -35,7 +35,7 @@ namespace Roblox.Website.UserControls.UserContent
                 AbuseReportButton.Visible = false;
             }
             else
-                lUserRobloxURL.Text = String.Format(Resources["HeadingUsersProfile"], UserProfile.ProfileDisplayName);
+                lUserRobloxURL.Text = HttpUtility.HtmlEncode(String.Format(Resources["HeadingUsersProfile"], UserProfile.ProfileDisplayName ?? string.Empty));
 
             // User status stuff
             // This code should hopefully last
@@ -46,11 +46,11 @@ namespace Roblox.Website.UserControls.UserContent
                     lUserOnlineStatus.CssClass = "UserOfflineMessage";
                     break;
                 case PresenceType.Online:
-                    lUserOnlineStatus.Text = String.Format(Resources["LabelOnlineStatusDetailed"], Resources["LabelOnline"], UserProfile.LastLocation);
+                    lUserOnlineStatus.Text = HttpUtility.HtmlEncode(String.Format(Resources["LabelOnlineStatusDetailed"], Resources["LabelOnline"], UserProfile.LastLocation ?? string.Empty));
                     lUserOnlineStatus.CssClass = "UserOnlineMessage";
                     break;
                 case PresenceType.InGame:
-                    UserOnlineStatusHyperLink.Text = String.Format(Resources["LabelOnlineStatusDetailed"], Resources["LabelOnline"], UserProfile.LastLocation);
+                    UserOnlineStatusHyperLink.Text = HttpUtility.HtmlEncode(String.Format(Resources["LabelOnlineStatusDetailed"], Resources["LabelOnline"], UserProfile.LastLocation ?? string.Empty));
                     UserOnlineStatusHyperLink.NavigateUrl = UserProfile.AbsolutePlaceUrl; // /Pacifico-New-Pizza-Restaurant-with-Job-place?id=85440715
                     break;
             }
@@ -72,7 +72,7 @@ namespace Roblox.Website.UserControls.UserContent
             if (!String.IsNullOrEmpty(UserProfile.PreviousUserNames))
             {
                 PreviousUserNames.Visible = true;
-                PreviousUserNames.Text = Resources["DescriptionChangedUsernames"] + " <img class='tooltip-bottom' style='cursor:pointer;' src='http://images.rbxcdn.com/d3246f1ece35d773099f876a31a38e5a.png' title='" + Resources["Label.PastUsernames"] + ": " + UserProfile.PreviousUserNames + "'/>";
+                PreviousUserNames.Text = Resources["DescriptionChangedUsernames"] + " <img class='tooltip-bottom' style='cursor:pointer;' src='http://images.rbxcdn.com/d3246f1ece35d773099f876a31a38e5a.png' title='" + HttpUtility.HtmlAttributeEncode(Resources["Label.PastUsernames"] + ": " + UserProfile.PreviousUserNames) + "'/>";
             }
 
             Alerts1.Visible = UserProfile.MayEdit;
