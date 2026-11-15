@@ -26,3 +26,10 @@ The view is rendered by `Website/UserControls/ClientInstaller.ascx`. Its view mo
 ## Verification limits
 
 This was a static source and image review. GitHub's code-search response was incomplete, so absence of references elsewhere in the repository has not been established. No application build or runtime test was performed.
+
+
+## Windows client build status — 2026-11-15
+
+The source fork's latest successful Windows build found during review is Run #88, but it produces a Debug Win32 (x86) executable named `RobloxPlayerBetaRaw.exe`, not a production BLOCK16 Release client. The binary is unsigned and retains Roblox-specific branding and legacy strings. It must not be presented as the official BLOCK16 download.
+
+Do not reuse the old screenshots for the EXE flow. A new BLOCK16 download page should be connected only after a reviewed, licensed, production Release executable and its supported installation/runtime requirements are ready. The Run #88 artifact is a short-lived CI artifact, not permanent website hosting.
