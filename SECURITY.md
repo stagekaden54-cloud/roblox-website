@@ -61,6 +61,15 @@ The legacy admin pages are intentionally unavailable after this hardening change
 - A stored-XSS path was confirmed in the public profile description and a user-created place-name output. Those two output paths have been encoded. The rest of the legacy Web Forms and inline-JavaScript surfaces still need a full output-encoding review.
 - The experimental MVC layout still includes Google Analytics, an event manager, Google AdWords conversion tracking, a JavaScript error tracker, a vendor signup tracking pixel, and a Facebook SDK loader. These are third-party tracking/data-sharing integrations and should be reviewed or removed/replaced according to BLOCK16's privacy policy before public launch.
 - The legacy membership provider reports zero invalid-password attempts and a zero-minute attempt window. The actual credential validator must implement login throttling and lockout before authentication is enabled.
-- Cookie-constraint code includes no-op/mock implementations and is not a functioning abuse-prevention system.
-- The logout endpoint currently changes authentication state through a GET request. It should be converted to a CSRF-protected POST when the navigation UI is updated to submit a form.
+- Cookie-constraint code includes no-op/mock implementations and is not a functioning abuse-prevention system. The only MVC controller that carried the redirect attribute was the logout controller; that unnecessary filter was removed so a mock constraint cannot prevent users from signing out. The separate constraint-fulfillment page still uses mock cookie logic and must not be enabled as a security feature.
+- Logout now uses an authenticated POST action with MVC anti-forgery validation. The navigation control emits an anti-forgery token and submits it with the logout request. GET logout is no longer supported.
 - No runtime, integration, or penetration tests have been performed. The repository is not ready for public launch based on this static review.
+
+
+## Latest hardening pass
+
+- Logout was changed from GET to POST and protected with `[ValidateAntiForgeryToken]`. The authenticated navigation control now renders an anti-forgery token and copies it into the POST form.
+- Added an explicit `System.Web.Helpers` project reference for the Web Forms anti-forgery token helper already provided by the installed ASP.NET WebPages package.
+- Signup birthday fields are now parsed with invariant integer parsing and checked for a valid month/day combination and an allowed year range before any date calculation. Invalid values return the existing generic bad-input membership status instead of throwing. The legacy signup helper still does not persist the birthday or gender; this patch only validates the submitted date.
+- Removed the mock cookie-constraint redirect filter from the logout-only MVC controller. Cookie constraint remains incomplete: its module is a no-op, its validator is a stub that always reports a constrained cookie, and the separate fulfillment page uses mock cookies rather than a verified security challenge.
+- These changes have been committed to `block16-rebrand`; the original `2016` branch remains untouched. No compile or runtime test has yet been performed, so the anti-forgery helper reference and Web Forms rendering must be verified in a .NET Framework 4.7.2 build/runtime.
