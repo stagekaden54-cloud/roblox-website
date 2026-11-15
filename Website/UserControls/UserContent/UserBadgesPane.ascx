@@ -11,8 +11,8 @@
             <ItemTemplate>
 		        <td valign="top">
 			        <div class="Badge" class="notranslate">
-				        <div class="BadgeImage"><asp:HyperLink ID="hlHeader" NavigateUrl='<%#Eval("ID", "~/Badges.aspx#Badge{0}") %>' runat="server"><asp:Image ID="iBadge" ImageUrl='<%#Eval("ImageUrl") %>' ToolTip='<%#Eval("Description") %>' Width="75" Height="75" runat="server" /></asp:HyperLink></div>
-				        <div class="BadgeLabel"><asp:HyperLink ID="HyperLink1" NavigateUrl='<%#Eval("ID", "~/Badges.aspx#Badge{0}") %>' Text='<%#Eval("Name") %>' runat="server" /></div>
+				        <div class="BadgeImage"><asp:HyperLink ID="hlHeader" NavigateUrl='<%#Eval("ID", "~/Badges.aspx#Badge{0}") %>' runat="server"><asp:Image ID="iBadge" ImageUrl='<%#Eval("ImageUrl") %>' ToolTip='<%#: Eval("Description") %>' Width="75" Height="75" runat="server" /></asp:HyperLink></div>
+				        <div class="BadgeLabel"><asp:HyperLink ID="HyperLink1" NavigateUrl='<%#Eval("ID", "~/Badges.aspx#Badge{0}") %>' Text='<%#: Eval("Name") %>' runat="server" /></div>
 			        </div>
 		        </td>
             </ItemTemplate>
