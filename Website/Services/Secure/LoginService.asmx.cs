@@ -55,9 +55,10 @@ namespace Roblox.Website.Services.Secure
 
             if (Membership.ValidateUser(userName, password))
             {
-                FormsAuthentication.SetAuthCookie(userName, true);
+                // Use a session cookie; do not persist authentication across browser restarts.
+                FormsAuthentication.SetAuthCookie(userName, false);
                 loginResponse.IsValid = true;
-                loginResponse.Message = String.Format("Welcome {0} to ROBLOX!", userName);
+                loginResponse.Message = "Welcome to BLOCK16.";
             }
             else
             {
