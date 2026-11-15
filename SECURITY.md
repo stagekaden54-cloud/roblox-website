@@ -25,3 +25,22 @@ This branch contains an initial hardening pass, not a security certification.
 ## Important compatibility note
 
 The legacy admin pages are intentionally unavailable after this hardening change. This is a fail-closed measure, not a completed replacement admin system. Local development over plain HTTP will also need an appropriately isolated development-only configuration rather than weakening production settings.
+
+
+## Additional authentication findings and mitigations
+
+- Login POST now validates an ASP.NET MVC anti-forgery token. The classic login form and animated login form both emit tokens.
+- Signup POST now validates an anti-forgery token, and the animated signup form emits it.
+- Login redirects now accept only local return URLs; external or malformed targets fall back to the site root.
+- Login cookies are non-persistent because the current form has no explicit "remember me" choice.
+- The repository's placeholder credential validator previously accepted every credential. It now rejects authentication until a real account-backed credential validator is configured.
+- Placeholder membership services no longer fabricate an authenticated "Admin" user, return synthetic users by arbitrary name, or grant privileged status. This is intentionally fail-closed.
+- These fail-closed changes mean authentication/account features will not work until real account and credential services are integrated. This is safer than allowing access with stub implementations.
+
+## Further findings still requiring work
+
+- The membership provider reports zero invalid-password attempts and a zero-minute attempt window. The provider delegates validation to another service, so real throttling/lockout must be implemented and tested in that service before launch.
+- Cookie-constraint code contains no-op and mock implementations. It must not be treated as an active abuse-prevention control.
+- Reviewed account, signup, email-address, and session-token DAL methods use SQL parameters and stored procedures in the inspected paths. This is encouraging but is not a complete SQL injection audit; stored procedure definitions and all DAL call sites still need review.
+- The inspected Razor login views use normal encoded Razor output. Site-wide XSS review, particularly legacy Web Forms pages and user-generated profile/chat/catalog content, remains incomplete.
+- No runtime, integration, or penetration testing has been performed.
