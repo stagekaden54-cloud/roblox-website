@@ -57,6 +57,18 @@ namespace Roblox.Website.Services.Secure
         public LoginResponse ValidateLogin(string userName, string password, bool isCaptchaOn = false, string challenge = "", string captchaResponse = "")
         {
             var loginResponse = new LoginResponse();
+
+            // The ASMX ScriptService login call is a state-changing POST. Reject
+            // other methods and cross-origin browser requests before validating
+            // credentials or issuing an authentication cookie.
+            if (!IsSameOriginLoginRequest())
+            {
+                loginResponse.IsValid = false;
+                loginResponse.ThrowError(ErrorCodeEnum.ErrorOccurred);
+                loginResponse.Message = "The login request could not be verified. Please reload the page and try again.";
+                return loginResponse;
+            }
+
             string clientAddress = Context != null && Context.Request != null
                 ? Context.Request.UserHostAddress
                 : null;
@@ -87,6 +99,40 @@ namespace Roblox.Website.Services.Secure
             }
 
             return loginResponse;
+        }
+
+        private bool IsSameOriginLoginRequest()
+        {
+            if (Context == null || Context.Request == null || Context.Request.Url == null)
+                return false;
+
+            var request = Context.Request;
+            if (!String.Equals(request.HttpMethod, "POST", StringComparison.OrdinalIgnoreCase))
+                return false;
+
+            Uri suppliedOrigin = null;
+            string originHeader = request.Headers["Origin"];
+
+            // Modern browsers send Origin for cross-origin-sensitive POSTs.
+            // Fall back to Referer for older clients that omit Origin.
+            if (!String.IsNullOrWhiteSpace(originHeader))
+            {
+                if (String.Equals(originHeader, "null", StringComparison.OrdinalIgnoreCase) ||
+                    !Uri.TryCreate(originHeader, UriKind.Absolute, out suppliedOrigin))
+                    return false;
+            }
+            else
+            {
+                string refererHeader = request.Headers["Referer"];
+                if (String.IsNullOrWhiteSpace(refererHeader) ||
+                    !Uri.TryCreate(refererHeader, UriKind.Absolute, out suppliedOrigin))
+                    return false;
+            }
+
+            Uri expectedOrigin = request.Url;
+            return String.Equals(suppliedOrigin.Scheme, expectedOrigin.Scheme, StringComparison.OrdinalIgnoreCase) &&
+                   String.Equals(suppliedOrigin.Host, expectedOrigin.Host, StringComparison.OrdinalIgnoreCase) &&
+                   suppliedOrigin.Port == expectedOrigin.Port;
         }
 
         private sealed class LoginAttemptLimiter
