@@ -1,7 +1,7 @@
 ﻿<%@ Control Language="C#" AutoEventWireup="true" CodeBehind="PublicUser.ascx.cs" Inherits="Roblox.Website.UserControls.UserContent.PublicUser" %>
 <%if (UserProfile != null) {%>
 <div class="UserBlurb" style="margin-top: 10px; overflow-y: auto; max-height: 450px; ">
-    <%=UserProfile.ProfileDescription %>
+    <%=System.Web.HttpUtility.HtmlEncode(UserProfile.ProfileDescription ?? string.Empty) %>
 </div>
 <div id="ProfileButtons" style="margin:10px auto;">
     <% if (UserProfile.AreFriends) { %>
@@ -47,7 +47,7 @@
                     if (!UserProfile.IsChatDisabledByPrivacySetting)
                     {
                 %>
-                    <div class="Item" onclick="ChatBar.ShowFriends();ChatBar.ToggleChat('<%=UserProfile.ProfileUserId %>', '<%=UserProfile.ProfileUserName %>');"><%=Resources.GetString("ActionStartChatting") %></div>
+                    <div class="Item" onclick="ChatBar.ShowFriends();ChatBar.ToggleChat('<%=UserProfile.ProfileUserId %>', '<%=System.Web.HttpUtility.HtmlAttributeEncode(System.Web.HttpUtility.JavaScriptStringEncode(UserProfile.ProfileUserName ?? string.Empty)) %>');"><%=Resources.GetString("ActionStartChatting") %></div>
                 <%
                     }
                     if (UserProfile.CanTrade)
