@@ -55,7 +55,8 @@ namespace Roblox.Website.Controllers
                         if (Membership.ValidateUser(model.Username, model.Password))
                         {
                             // We've been able to validate the user's auth request, now authenticate and redirect
-                            FormsAuthentication.SetAuthCookie(model.Username, true);
+                            // This login form has no 'remember me' option; issue a non-persistent auth cookie.
+                            FormsAuthentication.SetAuthCookie(model.Username, false);
                             return Redirect(GetSafeReturnUrl(model.ReturnUrl));
                         }
                         else
