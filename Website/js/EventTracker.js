@@ -1,7 +1,7 @@
 ﻿EventTracker = new function () {
     var self = this;
     self.logMetrics = false;
-    self.transmitMetrics = true;
+    self.transmitMetrics = false;
     self.localEventLog = [];
 
     var eventStore = new function () {
@@ -42,10 +42,6 @@
                     type: "POST",
                     timeout: 50000,
                     url: "/game/report-stats?name=" + statName + "&value=" + duration,
-                    crossDomain: true,
-                    xhrFields: {
-                        withCredentials: true
-                    }
                 });
             }
         } else {
@@ -79,10 +75,6 @@
                 type: "POST",
                 timeout: 50000,
                 url: "/game/report-event?name=" + name,
-                crossDomain: true,
-                xhrFields: {
-                    withCredentials: true
-                }
             });
             if (self.logMetrics) {
                 console.log('[event]', name);
