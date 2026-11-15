@@ -39,6 +39,7 @@ namespace Roblox.Website.Controllers
 
         // POST: Landing/Animated
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Animated(FormCollection form)
         {
             var gender = (byte)(form["gender"] == "Female" ? 2 : 1);
