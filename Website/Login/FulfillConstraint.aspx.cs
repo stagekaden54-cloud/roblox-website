@@ -16,12 +16,24 @@ namespace Roblox.Website.Login
 
         protected void Page_PreInit(object sender, EventArgs e)
         {
-            ReturnURL = !string.IsNullOrEmpty(Request["ReturnUrl"]) ? Request["ReturnUrl"] : "/";
+            ReturnURL = GetSafeReturnUrl(Request["ReturnUrl"]);
 
             if (!CookieConstraintManager.IsRequesterConstrained())
             {
                 Response.Redirect(ReturnURL, true);
             }
+        }
+
+        private static string GetSafeReturnUrl(string candidate)
+        {
+            if (string.IsNullOrEmpty(candidate) || candidate[0] != '/' ||
+                (candidate.Length > 1 && (candidate[1] == '/' || candidate[1] == '\\')) ||
+                candidate.IndexOf('\\') >= 0)
+            {
+                return "/";
+            }
+
+            return candidate;
         }
 
         protected void Page_Load(object sender, EventArgs e)
