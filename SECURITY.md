@@ -148,3 +148,11 @@ The legacy admin pages are intentionally unavailable after this hardening change
 - `Website/UserControls/TrackingPixels/RobloxEventManager.ascx` contains an explicit `RobloxEventManager.initialize(true)` and configures an external `roblox.com/Game/EventTracker.ashx` listener. The two shared layouts reviewed earlier no longer include this partial, but the separate `/Tracking/EventManager` view and any other callers must be checked before removing the legacy event-manager subsystem.
 - The legacy video pre-roll view currently sets `Roblox.VideoPreRoll.showVideoPreRoll = false`; however, the view is included by the game place-launcher view and the ad scripts remain bundled. The newer `videoPreRollDFP.js` contains age/segment, gender, game-genre, place-ID, and related ad-targeting fields. Do not enable this integration for BLOCK16 without a clear privacy policy, data-minimization review, and explicit product decision.
 - Re-fetched the updated `EventTracker.js` from `block16-rebrand` after the change. This was source-level verification only; no browser network capture or runtime test was performed.
+
+
+## Legacy event-manager endpoint disabled
+
+- Replaced the contents of `Website/UserControls/TrackingPixels/RobloxEventManager.ascx` with a comment stating that legacy event tracking is disabled. The former partial initialized both Roblox and Google event listeners, enabled event forwarding, emitted page-view/return-visit events, and monitored legacy client-install events.
+- This also disables that initializer when the standalone `/Tracking/EventManager` MVC view is requested, because that view renders this partial.
+- The legacy JavaScript modules and tracking controller/view files remain in the repository; other independent initializers or direct external integrations may still exist. This change does not prove all third-party tracking is gone.
+- Re-fetched the edited partial from `block16-rebrand` after the change. No browser network test was performed.
