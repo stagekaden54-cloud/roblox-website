@@ -44,3 +44,23 @@ The legacy admin pages are intentionally unavailable after this hardening change
 - Reviewed account, signup, email-address, and session-token DAL methods use SQL parameters and stored procedures in the inspected paths. This is encouraging but is not a complete SQL injection audit; stored procedure definitions and all DAL call sites still need review.
 - The inspected Razor login views use normal encoded Razor output. Site-wide XSS review, particularly legacy Web Forms pages and user-generated profile/chat/catalog content, remains incomplete.
 - No runtime, integration, or penetration testing has been performed.
+
+## Additional high-priority fixes and findings
+
+- Fixed an open redirect in the login POST action. Redirects now accept only local URLs.
+- Added anti-forgery tokens and server-side validation to the classic login, animated login, and animated signup forms.
+- Profile descriptions are now HTML-encoded before display. Usernames inserted into the profile chat JavaScript are JavaScript-encoded and HTML-attribute-encoded.
+- User-created place names in the profile showcase now use encoded data binding.
+- Standard login now issues a non-persistent authentication cookie because the form does not offer a remember-me choice.
+- Found that the old signup provider generated passwords with a single unsalted SHA-256 hash (HashGenerator.HashString with an empty salt). Account creation has been disabled until a proper password service such as the repository's IPasswordsClient integration is implemented. Do not re-enable the old hash path.
+- The placeholder credential validator now rejects all credentials until a real account-backed validator is configured. Placeholder membership code no longer fabricates a signed-in Admin user or grants privileged status. As a result, login and signup are intentionally unavailable until the real services are connected.
+
+## Further investigation
+
+- The inspected account lookup, signup, email-address, and session-token data-access methods pass values as SQL parameters to stored procedures. No direct SQL injection was confirmed in those inspected methods. Stored procedure definitions and the remaining DAL files have not all been audited.
+- A stored-XSS path was confirmed in the public profile description and a user-created place-name output. Those two output paths have been encoded. The rest of the legacy Web Forms and inline-JavaScript surfaces still need a full output-encoding review.
+- The experimental MVC layout still includes Google Analytics, an event manager, Google AdWords conversion tracking, a JavaScript error tracker, a vendor signup tracking pixel, and a Facebook SDK loader. These are third-party tracking/data-sharing integrations and should be reviewed or removed/replaced according to BLOCK16's privacy policy before public launch.
+- The legacy membership provider reports zero invalid-password attempts and a zero-minute attempt window. The actual credential validator must implement login throttling and lockout before authentication is enabled.
+- Cookie-constraint code includes no-op/mock implementations and is not a functioning abuse-prevention system.
+- The logout endpoint currently changes authentication state through a GET request. It should be converted to a CSRF-protected POST when the navigation UI is updated to submit a form.
+- No runtime, integration, or penetration tests have been performed. The repository is not ready for public launch based on this static review.
