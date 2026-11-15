@@ -63,7 +63,6 @@ namespace Roblox.Website {
 					"GoogleEventListener.js",
 					"MongoEventListener.js",
 					"SiteTouchEvent.js",
-					"GPTAdScript.js",
 					"DropDownNav.js",
 					"common/forms.js",
 					"jquery.ba-postmessage.js",
