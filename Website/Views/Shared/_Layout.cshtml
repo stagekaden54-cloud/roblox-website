@@ -34,10 +34,8 @@
     @Html.Raw(RobloxCSSShim.RenderBundle("main"))
     @Html.Raw(RobloxCSSShim.Render(StaticContent.GetPageCSSBundle()))
 
-    <script type='text/javascript' src='//ajax.aspnetcdn.com/ajax/jQuery/jquery-1.7.2.min.js'></script>
-    <script type='text/javascript'>window.jQuery || document.write("<script type='text/javascript' src='/js/jquery/jquery-1.7.2.min.js'><\/script>")</script>
-    <script type='text/javascript' src='//ajax.aspnetcdn.com/ajax/4.0/1/MicrosoftAjax.js'></script>
-    <script type='text/javascript'>window.Sys || document.write("<script type='text/javascript' src='/js/Microsoft/MicrosoftAjax.js'><\/script>")</script>
+    <script type='text/javascript' src='/js/jquery/jquery-1.7.2.min.js'></script>
+    <script type='text/javascript' src='/js/Microsoft/MicrosoftAjax.js'></script>
     @Html.Raw(RobloxScriptsShim.RenderBundle("base"))
     @RenderSection("HeadScripts", required: false)
     @*Scripts.Render("~/Js/M/nonLoggedIn")*@
