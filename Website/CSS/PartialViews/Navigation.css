@@ -77,7 +77,7 @@
 }
 #navigation-container a.btn-logo, #navigation-menu a.btn-logo:visited, #navigation-container  a.btn-logo:hover
 {
-    background:url(/Images/Branding/block16-logo.svg) no-repeat top;
+    background:url(/Images/Branding/block16-logo.svg) no-repeat center;\n    background-size:116px 35px;
     display:inline-block;
     width:116px;
     height:35px;
@@ -88,7 +88,7 @@
 }
 #navigation-container  a.btn-logo:hover
 {
-    background-position: bottom;
+    background-position: center;
 }
 #navigation-container #AuthenticatedUserName {
     display: inline-block;
