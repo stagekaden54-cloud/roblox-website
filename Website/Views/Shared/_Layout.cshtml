@@ -34,7 +34,6 @@
     @Html.Raw(RobloxCSSShim.RenderBundle("main"))
     @Html.Raw(RobloxCSSShim.Render(StaticContent.GetPageCSSBundle()))
 
-    @Html.Partial("~/UserControls/TrackingPixels/GoogleAnalytics.ascx")
     <script type='text/javascript' src='//ajax.aspnetcdn.com/ajax/jQuery/jquery-1.7.2.min.js'></script>
     <script type='text/javascript'>window.jQuery || document.write("<script type='text/javascript' src='/js/jquery/jquery-1.7.2.min.js'><\/script>")</script>
     <script type='text/javascript' src='//ajax.aspnetcdn.com/ajax/4.0/1/MicrosoftAjax.js'></script>
@@ -45,12 +44,6 @@
     <script type='text/javascript'>Roblox.config.externalResources = ['/js/jquery/jquery-1.7.2.min.js', '/js/json2.min.js']; Roblox.config.paths['jQuery'] = '/js/modules/jQuery.js'; Roblox.config.paths['Pagelets.BestFriends'] = '/js/modules/Pagelets/BestFriends.js'; Roblox.config.paths['Pages.Catalog'] = '/js/modules/Pages/Catalog.js'; Roblox.config.paths['Pages.Messages'] = '/js/modules/Pages/Messages.js'; Roblox.config.paths['Resources.Messages'] = '/js/modules/Resources/Messages.js'; Roblox.config.paths['Widgets.AvatarImage'] = '/js/modules/Widgets/AvatarImage.js'; Roblox.config.paths['Widgets.DropdownMenu'] = '/js/modules/Widgets/DropdownMenu.js'; Roblox.config.paths['Widgets.GroupImage'] = '/js/modules/Widgets/GroupImage.js'; Roblox.config.paths['Widgets.HierarchicalDropdown'] = '/js/modules/Widgets/HierarchicalDropdown.js'; Roblox.config.paths['Widgets.ItemImage'] = '/js/modules/Widgets/ItemImage.js'; Roblox.config.paths['Widgets.PlaceImage'] = '/js/modules/Widgets/PlaceImage.js'; Roblox.config.paths['Widgets.Suggestions'] = '/js/modules/Widgets/Suggestions.js'; Roblox.config.paths['Widgets.SurveyModal'] = '/js/modules/WidgWebtApplicationURLs/SurveyModal.js';</script>
     @Html.Raw(RobloxScriptsShim.Render(StaticContent.GetPageScriptBundle()))
 
-    @Html.Partial("~/Views/Tracking/JavascriptErrorTracker.cshtml", (JavascriptErrorTrackerViewModel)ViewBag.JavascriptErrorTrackerViewModel)
-    <script type="text/javascript">
-        $(function () {
-            RobloxEventManager.triggerEvent('rbx_evt_newuser', {});
-        });
-    </script>
     <script type="text/javascript">
         var Roblox = Roblox || {};
         Roblox.UpsellAdModal = Roblox.UpsellAdModal || {};
@@ -83,7 +76,6 @@
                 top.location = self.location.href;
             }
         </script>
-        @Html.Partial("~/Views/Tracking/EventManager.cshtml")
         <div>
             @Html.Partial("~/Views/Navigation/Navigation.cshtml", new NavigationViewModel())
             <style>
@@ -112,11 +104,9 @@
 
     @* Chat UserControl should go here *@
     @{
-        Html.RenderPartial("~/Views/Tracker/GoogleAnalytics.cshtml");
         Html.RenderPartial("~/Views/Game/PlaceLauncher.cshtml", placeLauncherModel);
         Html.RenderPartial("~/Views/Game/ClientInstaller.cshtml", clientInstallerModel);
         Html.RenderPartial("~/UserControls/Modals/ConfirmationModal.ascx");
-        Html.RenderPartial("~/Views/Tracking/VendorSpecificSignupTrackingPixel.cshtml");
     }
 
 </body>
