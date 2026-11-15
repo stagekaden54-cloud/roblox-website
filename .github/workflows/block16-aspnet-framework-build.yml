@@ -1,0 +1,60 @@
+name: BLOCK16 ASP.NET Framework Build
+
+on:
+  push:
+    branches:
+      - block16-rebrand
+    paths:
+      - '.github/workflows/block16-aspnet-framework-build.yml'
+      - 'Website/**'
+      - 'Assemblies/**'
+      - 'Directory.Build.props'
+      - 'nuget.config'
+      - 'global.json'
+  pull_request:
+    branches:
+      - block16-rebrand
+    paths:
+      - '.github/workflows/block16-aspnet-framework-build.yml'
+      - 'Website/**'
+      - 'Assemblies/**'
+      - 'Directory.Build.props'
+      - 'nuget.config'
+      - 'global.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: block16-aspnet-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build legacy ASP.NET website
+    runs-on: windows-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Add Visual Studio MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Add NuGet
+        uses: NuGet/setup-nuget@v2
+
+      - name: Show build environment
+        shell: pwsh
+        run: |
+          Write-Host "Runner: $env:RUNNER_OS"
+          msbuild -version
+          nuget help | Select-Object -First 2
+
+      - name: Restore NuGet packages
+        run: nuget restore Website/Roblox.Website.sln -NonInteractive -ConfigFile nuget.config
+
+      - name: Build ASP.NET website solution
+        run: msbuild Website/Roblox.Website.sln /m /p:Configuration=Release "/p:Platform=Any CPU" /p:RestorePackagesConfig=true /verbosity:minimal
