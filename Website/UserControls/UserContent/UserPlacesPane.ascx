@@ -13,7 +13,7 @@
         <div class="accord-section accord-section-open">
             <div class="accord-header notranslate">
                 <div class="accord-arrow">&#x25b6;</div>
-			    <%# Item.Name %>
+			    <%#: Item.Name %>
             </div>
             <div class="accord-content notranslate">
 			    <rbx:Platform ID="rbxPlatform" Place='<%# Item %>' runat="server" />
