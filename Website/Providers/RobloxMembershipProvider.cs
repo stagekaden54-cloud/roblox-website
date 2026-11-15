@@ -18,7 +18,7 @@ namespace Roblox.Website.Providers
 
         public override string ApplicationName { get; set; }
 
-        public override int MinRequiredPasswordLength => 6;
+        public override int MinRequiredPasswordLength => 12;
 
         public override bool RequiresUniqueEmail => true;
 
@@ -26,7 +26,7 @@ namespace Roblox.Website.Providers
 
         public override string PasswordStrengthRegularExpression => "";
 
-        public override int MinRequiredNonAlphanumericCharacters => 2;
+        public override int MinRequiredNonAlphanumericCharacters => 1;
 
         public override MembershipPasswordFormat PasswordFormat => MembershipPasswordFormat.Hashed;
 
