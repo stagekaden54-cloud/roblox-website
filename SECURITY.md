@@ -178,3 +178,14 @@ The legacy admin pages are intentionally unavailable after this hardening change
 - Encoded the previous-usernames string specifically for its HTML title attribute. This string was previously concatenated into an HTML fragment without attribute encoding.
 - Changed the badge description tooltip and badge name data bindings to encoded data-binding expressions (`<%#: ... %>`) so stored badge text is not emitted as raw markup.
 - Re-fetched the edited profile code-behind and badge markup from `block16-rebrand`. This is a targeted XSS mitigation, not a complete review of all Web Forms controls, templates, and user-generated content.
+
+
+## Legacy installer and installation-image review
+
+A static review of the BLOCK16 branch found that `Website/Images/Install/` contains legacy Roblox-branded installation screenshots. The images name Roblox.exe, Roblox Corporation, old browser download prompts, and an InstallShield wizard. They do not describe a verified BLOCK16 Windows-client installation process and should not be used on new BLOCK16 download pages.
+
+The reviewed `Website/Views/Game/ClientInstaller.cshtml` references external `images.rbxcdn.com` screenshots and links to `roblox.com/Download`; it is rendered by `Website/UserControls/ClientInstaller.ascx`. The associated `ClientInstallerViewModel` still configures a legacy plugin CLSID and install host. This path is not a verified BLOCK16 installer. Do not present it as a working BLOCK16 Windows-client download flow without a separate migration and runtime validation.
+
+An asset audit note was added at `Website/Images/Install/README.md`. The legacy image files were intentionally not deleted or edited: repository-wide reference tracing is incomplete, and the actual BLOCK16 Windows installer/package format, publisher identity, signing, and supported Windows versions have not yet been established. Replacing words inside the old screenshots would preserve obsolete and potentially misleading steps.
+
+Verification: static source and image inspection only. GitHub code search reported incomplete results, so global reference absence is not established. No build, installer test, browser test, or runtime test was performed.
