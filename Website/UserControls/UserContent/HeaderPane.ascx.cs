@@ -27,7 +27,6 @@ namespace Roblox.Website.UserControls.UserContent
             else
             {
                 updateStatusLink.Visible = true;
-                nameRegion.Text += String.Format(Resources["LabelGreeting"], UserProfile.ProfileDisplayName);
                 txtStatusMessage.MaxLength = UserProfile.EditStatusMaxLength;
                 txtStatusMessage.Text = "TODO: Add Statuses";
             }
