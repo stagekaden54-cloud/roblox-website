@@ -77,7 +77,7 @@
 }
 #navigation-container a.btn-logo, #navigation-menu a.btn-logo:visited, #navigation-container  a.btn-logo:hover
 {
-    background:url(/images/RevisedHeader/btn-rbx_logo.png) no-repeat top;
+    background:url(/Images/Branding/block16-logo.svg) no-repeat top;
     display:inline-block;
     width:116px;
     height:35px;
@@ -101,7 +101,7 @@
     *margin-top: 10px;
 }
 .site-header {
-    background: url(/images/RevisedHeader/bg-rbx_header.png) repeat-x;
+    background: url(/images/RevisedHeader/bg-block16-header.png) repeat-x;
     height: 36px;
     background-color: #114081;
     position: fixed;
