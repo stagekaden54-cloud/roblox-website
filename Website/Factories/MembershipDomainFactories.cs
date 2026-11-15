@@ -26,7 +26,8 @@ namespace Roblox.Website.Factories
         {
             public IUser GetUser(long id, bool shouldReturnForgottenUser = false) => new StubUser { Id = (int)id, Name = $"User{id}" };
             public IUser MustGetUser(long id, bool shouldReturnForgottenUser = false) => GetUser(id, shouldReturnForgottenUser);
-            public IUser GetUserByName(string name, bool shouldReturnForgottenUser = false) => new StubUser { Id = 1, Name = name ?? "Guest" };
+            // No synthetic users: an unconfigured account store must not authenticate anyone.
+            public IUser GetUserByName(string name, bool shouldReturnForgottenUser = false) => null;
             public IUser GetUserByAccountId(long accountId, bool shouldReturnForgottenUser = false) => new StubUser { Id = (int)accountId, Name = $"Acct{accountId}" };
             public IUser GetUserByAnyName(string name, bool shouldReturnForgottenUser = false) => GetUserByName(name, shouldReturnForgottenUser);
             public System.Collections.Generic.ICollection<IUser> GetUsers(System.Collections.Generic.ICollection<long> ids, bool shouldReturnForgottenUser = false) => new System.Collections.Generic.List<IUser>();
@@ -35,7 +36,8 @@ namespace Roblox.Website.Factories
             public IUser CreateNewUser(string username, string password) => new StubUser { Id = 2, Name = username ?? "NewUser" };
             public long GetRobloxSystemUserId() => 1;
             public IUser GetRobloxSystemUser() => new StubUser { Id = 1, Name = "ROBLOX" };
-            public IUser GetCurrentUser() => new StubUser { Id = 1, Name = "Admin" };
+            // Fail closed when the real authenticated-user lookup is not configured.
+            public IUser GetCurrentUser() => null;
         }
 
         private class StubUser : IUser
@@ -67,7 +69,8 @@ namespace Roblox.Website.Factories
             public bool IsProtectedUser(IUser user) => false;
             public bool IsSoothsayer(IUser user) => false;
             public bool IsBetaTester(IUser user) => false;
-            public bool IsPrivilegedUser(IUser user) => true;
+            // Never grant administrator privileges from a placeholder implementation.
+            public bool IsPrivilegedUser(IUser user) => false;
             public bool IsTrustedContributor(IUser user) => false;
             public bool IsContentCreator(IUser user) => false;
             public bool IsDeveloperRelations(IUser user) => false;
