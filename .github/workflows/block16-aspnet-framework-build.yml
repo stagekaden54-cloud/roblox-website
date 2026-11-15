@@ -108,5 +108,8 @@ jobs:
       - name: Restore NuGet packages
         run: nuget restore Website/Roblox.Website.sln -NonInteractive -ConfigFile nuget.config
 
+      - name: Restore SDK-style project dependencies
+        run: dotnet restore Website/Roblox.Website.sln
+
       - name: Build ASP.NET website solution
         run: msbuild Website/Roblox.Website.sln /m /p:Configuration=Release "/p:Platform=Any CPU" /p:RestorePackagesConfig=true /verbosity:minimal
