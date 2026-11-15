@@ -31,7 +31,7 @@ namespace Roblox.Website.UserControls.UserContent
                 txtStatusMessage.MaxLength = UserProfile.EditStatusMaxLength;
                 txtStatusMessage.Text = "TODO: Add Statuses";
             }
-            nameRegion.Text = UserProfile.ProfileDisplayName;
+            nameRegion.Text = HttpUtility.HtmlEncode(UserProfile.ProfileDisplayName ?? string.Empty);
             statusRegion.Text = "\"TODO: Add Statuses\"";
 
             DataBind();
