@@ -95,7 +95,20 @@ namespace Roblox.Website.WebCode
                 return MembershipCreateStatus.InvalidPassword;
             }
 
-            var birthday = new DateTime(Convert.ToInt32(years), Convert.ToInt32(months), Convert.ToInt32(days));
+            int day;
+            int month;
+            int year;
+            int currentYear = DateTime.Today.Year;
+
+            if (!int.TryParse(days, NumberStyles.None, CultureInfo.InvariantCulture, out day) ||
+                !int.TryParse(months, NumberStyles.None, CultureInfo.InvariantCulture, out month) ||
+                !int.TryParse(years, NumberStyles.None, CultureInfo.InvariantCulture, out year) ||
+                year < currentYear - 100 || year >= currentYear ||
+                month < 1 || month > 12 ||
+                day < 1 || day > DateTime.DaysInMonth(year, month))
+            {
+                return MembershipCreateStatus.InvalidUserName;
+            }
 
             MembershipCreateStatus status;
             Membership.CreateUser(name, pass, null, null, null, true, null, out status);
