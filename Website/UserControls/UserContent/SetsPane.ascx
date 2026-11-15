@@ -2,7 +2,7 @@
 <div style="padding-bottom: 20px">
     <div>
         <h2 class="title" style="display:block;float: left;">
-            <%=String.Format(Resources.GetString("HeadingSets"), "<span class=\"notranslate\">" + UserProfile.ProfileDisplayName + "</span>") %>
+            <%=String.Format(Resources.GetString("HeadingSets"), "<span class=\"notranslate\">" + System.Web.HttpUtility.HtmlEncode(UserProfile.ProfileDisplayName ?? string.Empty) + "</span>") %>
         </h2>
         <a data-js-my-button href class="btn-small btn-neutral" id="ToggleBetweenOwnedSubscribedSets" style="float: right; margin-right: 20px; margin-top: 25px" onclick="Roblox.SetsPaneObject.toggleBetweenSetsOwnedSubscribed();return false;" >View Subscribed<span class="btn-text" id="SetsToggleSpan">View Subscribed</span></a>
         <div class="clear"></div>
