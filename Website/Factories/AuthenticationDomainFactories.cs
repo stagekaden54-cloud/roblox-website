@@ -30,10 +30,12 @@ namespace Roblox.Website.Factories
         {
             public Roblox.Platform.Authentication.CredentialValidationResult ValidateCredentials(Roblox.Platform.Authentication.UserCredentials credentials)
             {
-                return new Roblox.Platform.Authentication.CredentialValidationResult { IsValid = true };
+                // Fail closed until a real credential validator is wired to the account store.
+                return new Roblox.Platform.Authentication.CredentialValidationResult { IsValid = false };
             }
 
-            public bool ValidateEmail(long userId, string email) => true;
+            // Do not claim an email address is valid without a real verification service.
+            public bool ValidateEmail(long userId, string email) => false;
         }
     }
 }
