@@ -41,7 +41,7 @@
                 $.ajax({
                     type: "POST",
                     timeout: 50000,
-                    url: "/game/report-stats?name=" + statName + "&value=" + duration,
+                    url: "/game/report-stats?name=" + encodeURIComponent(statName) + "&value=" + duration,
                 });
             }
         } else {
@@ -71,11 +71,13 @@
     };
     self.fireEvent = function () {
         $.each(arguments, function (idx, name) {
-            $.ajax({
-                type: "POST",
-                timeout: 50000,
-                url: "/game/report-event?name=" + name,
-            });
+            if (self.transmitMetrics) {
+                $.ajax({
+                    type: "POST",
+                    timeout: 50000,
+                    url: "/game/report-event?name=" + encodeURIComponent(name),
+                });
+            }
             if (self.logMetrics) {
                 console.log('[event]', name);
             }
