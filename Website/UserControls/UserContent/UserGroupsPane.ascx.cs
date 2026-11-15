@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Web;
 using Roblox.Website.ViewModels.Users;
 
 namespace Roblox.Website.UserControls.UserContent
@@ -11,7 +12,7 @@ namespace Roblox.Website.UserControls.UserContent
             if (UserProfile == null)
                 return;
 
-            lNoResults.Text = String.Format(lNoResults.Text, UserProfile.ProfileDisplayName);
+            lNoResults.Text = HttpUtility.HtmlEncode(String.Format(lNoResults.Text, UserProfile.ProfileDisplayName ?? string.Empty));
         }
     }
 }
