@@ -3,55 +3,116 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="BLOCK16 is a classic-era game platform revival project in development.">
-  <meta name="theme-color" content="#123f83">
-  <title>BLOCK16 — Classic-era game platform</title>
+  <meta name="description" content="BLOCK16 is a classic-era building and gaming revival project in development.">
+  <meta name="theme-color" content="#00a2ff">
+  <title>BLOCK16 - Games, building, and community</title>
   <link rel="icon" type="image/svg+xml" href="/assets/block16-icon.svg">
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-  <header class="site-header">
-    <a class="brand" href="/" aria-label="BLOCK16 home"><img src="/assets/block16-logo.svg" alt="BLOCK16"></a>
-    <nav aria-label="Main navigation">
-      <a class="active" href="/">Home</a>
-      <a href="/download/windows/">Windows client</a>
-      <a href="https://github.com/stagekaden54-cloud/roblox-website" target="_blank" rel="noopener noreferrer">Source code</a>
-    </nav>
-  </header>
-  <main>
-    <section class="hero">
-      <div class="hero-copy">
-        <p class="eyebrow">A classic-era experience</p>
-        <h1>Welcome to <span>BLOCK16</span></h1>
-        <p class="lead">A community-driven revival project inspired by the look and feel of classic-era online games.</p>
-        <div class="actions">
-          <a class="button primary" href="/download/windows/">Windows client</a>
-          <a class="button secondary" href="https://github.com/stagekaden54-cloud/roblox-website" target="_blank" rel="noopener noreferrer">Explore the source</a>
+  <div class="top-strip">
+    <div class="top-strip-inner">
+      <a class="wordmark" href="/" aria-label="BLOCK16 home"><img src="/assets/block16-logo.svg" alt="BLOCK16"></a>
+      <nav class="main-nav" aria-label="Main navigation">
+        <a class="selected" href="/">Home</a>
+        <a href="#games">Games</a>
+        <a href="#catalog">Catalog</a>
+        <a href="#about">About</a>
+      </nav>
+      <div class="account-nav">
+        <span class="preview-label">Preview</span>
+        <a href="#account-status">Sign In</a>
+        <a class="signup-link" href="#account-status">Sign Up</a>
+      </div>
+    </div>
+  </div>
+
+  <main class="page-shell">
+    <div class="announcement" role="status">
+      <strong>BLOCK16 is being rebuilt.</strong>
+      <span>This is an early visual preview. Accounts, multiplayer, and game launching are not active yet.</span>
+    </div>
+
+    <section class="welcome-panel">
+      <div class="welcome-copy">
+        <p class="small-heading">WELCOME TO BLOCK16</p>
+        <h1>Your next adventure<br><span>starts here.</span></h1>
+        <p>Discover classic-style games, explore creations, and follow the return of a familiar era of online play.</p>
+        <a class="blue-button" href="#games">Explore games</a>
+      </div>
+      <div class="welcome-art" aria-hidden="true">
+        <div class="sun"></div>
+        <div class="block block-one"></div>
+        <div class="block block-two"></div>
+        <div class="block block-three"></div>
+        <div class="cloud cloud-one"></div>
+        <div class="cloud cloud-two"></div>
+        <div class="art-caption">BUILD • PLAY • EXPLORE</div>
+      </div>
+    </section>
+
+    <div class="content-columns">
+      <section class="main-column" id="games">
+        <div class="section-heading">
+          <h2>Featured Games</h2>
+          <span class="section-note">Preview examples</span>
         </div>
-      </div>
-      <div class="hero-panel" aria-label="BLOCK16 project status">
-        <img src="/assets/block16-icon.svg" alt="" width="72" height="72">
-        <h2>Under development</h2>
-        <p>Features are being brought online in stages. Some areas of the original platform are not available yet.</p>
-      </div>
-    </section>
-    <section class="feature-grid" aria-label="Project information">
-      <article class="feature">
-        <h2>Classic-inspired design</h2>
-        <p>A familiar, simple interface inspired by an earlier era of online gaming.</p>
-      </article>
-      <article class="feature">
-        <h2>Windows client</h2>
-        <p>Follow development and check release information before installing a client.</p>
-        <a href="/download/windows/">View Windows client information →</a>
-      </article>
-      <article class="feature">
-        <h2>Open development</h2>
-        <p>Review the project source and follow changes through the public repository.</p>
-        <a href="https://github.com/stagekaden54-cloud/roblox-website" target="_blank" rel="noopener noreferrer">Visit GitHub →</a>
-      </article>
-    </section>
+        <div class="game-grid">
+          <article class="game-card">
+            <div class="game-art art-adventure"><span>ADVENTURE</span><b>01</b></div>
+            <div class="game-info"><h3>Adventure World</h3><p>Explore a world of possibilities.</p><span class="game-state">Coming later</span></div>
+          </article>
+          <article class="game-card">
+            <div class="game-art art-city"><span>ROLEPLAY</span><b>02</b></div>
+            <div class="game-info"><h3>Block City</h3><p>Create a story in the city.</p><span class="game-state">Coming later</span></div>
+          </article>
+          <article class="game-card">
+            <div class="game-art art-obstacle"><span>OBBY</span><b>03</b></div>
+            <div class="game-info"><h3>Skyline Obby</h3><p>Jump into a new challenge.</p><span class="game-state">Coming later</span></div>
+          </article>
+        </div>
+
+        <div class="section-heading catalog-heading" id="catalog">
+          <h2>Explore the Catalog</h2>
+          <span class="section-note">In development</span>
+        </div>
+        <div class="catalog-panel">
+          <div class="catalog-icon">◆</div>
+          <div><h3>Your style. Your creations.</h3><p>The classic-inspired catalog experience is part of the roadmap. Items and avatar features will appear here when they're ready.</p></div>
+        </div>
+      </section>
+
+      <aside class="side-column">
+        <section class="side-box" id="about">
+          <h2>Welcome to BLOCK16</h2>
+          <p>BLOCK16 is an independent revival project inspired by the design and feel of classic-era building games.</p>
+          <a href="https://github.com/stagekaden54-cloud/roblox-website" target="_blank" rel="noopener noreferrer">View the source code »</a>
+        </section>
+        <section class="side-box status-box" id="account-status">
+          <h2>Project Status</h2>
+          <ul class="status-list">
+            <li><span class="status-dot ready"></span> Website preview <b>Online</b></li>
+            <li><span class="status-dot progress"></span> Classic homepage <b>Building</b></li>
+            <li><span class="status-dot pending"></span> Accounts <b>Not available</b></li>
+            <li><span class="status-dot pending"></span> Game launching <b>Not available</b></li>
+          </ul>
+          <p class="status-footnote">Sign in and sign up are preview-only links. No account information is requested or stored.</p>
+        </section>
+        <section class="side-box">
+          <h2>Development News</h2>
+          <div class="news-item"><span class="news-date">NOVEMBER 2026</span><p>BLOCK16's classic-style website is being rebuilt in stages.</p></div>
+          <div class="news-item"><span class="news-date">NEXT UP</span><p>Game discovery, profile layouts, and more of the classic interface.</p></div>
+        </section>
+      </aside>
+    </div>
   </main>
-  <footer><span>BLOCK16</span><span>Independent revival project. Not affiliated with Roblox Corporation.</span></footer>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <span>© 2026 BLOCK16</span>
+      <span>Independent revival project. Not affiliated with Roblox Corporation.</span>
+      <a href="https://github.com/stagekaden54-cloud/roblox-website" target="_blank" rel="noopener noreferrer">Open-source development »</a>
+    </div>
+  </footer>
 </body>
 </html>
