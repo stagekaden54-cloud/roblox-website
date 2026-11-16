@@ -113,3 +113,49 @@ jobs:
 
       - name: Build ASP.NET website solution
         run: msbuild Website/Roblox.Website.sln /m /p:Configuration=Release "/p:Platform=Any CPU" /p:RestorePackagesConfig=true /verbosity:minimal
+
+      - name: Package compiled website assemblies
+        shell: pwsh
+        run: |
+          $source = Join-Path $env:GITHUB_WORKSPACE 'Website\bin'
+          $package = Join-Path $env:GITHUB_WORKSPACE 'artifacts\block16-website-bin'
+
+          if (-not (Test-Path $source -PathType Container)) {
+            throw "The website build output directory was not found: $source"
+          }
+
+          $assemblies = @(Get-ChildItem -Path $source -Filter '*.dll' -File -Recurse)
+          if ($assemblies.Count -eq 0) {
+            throw "No compiled DLL assemblies were found in: $source"
+          }
+
+          New-Item -ItemType Directory -Path $package -Force | Out-Null
+          Copy-Item -Path (Join-Path $source '*') -Destination $package -Recurse -Force
+
+          $manifest = @(
+            "BLOCK16 website build output"
+            "Commit: $env:GITHUB_SHA"
+            "Branch: $env:GITHUB_REF_NAME"
+            "Built at (UTC): $([DateTime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ'))"
+            "DLL assembly count: $($assemblies.Count)"
+            ""
+            "Files:"
+          )
+
+          $manifest += Get-ChildItem -Path $package -File -Recurse |
+            Sort-Object FullName |
+            ForEach-Object {
+              $relative = $_.FullName.Substring($package.Length).TrimStart('\')
+              "$relative | $($_.Length) bytes | $((Get-FileHash $_.FullName -Algorithm SHA256).Hash)"
+            }
+
+          $manifest | Set-Content -Path (Join-Path $package 'BUILD-MANIFEST.txt') -Encoding utf8
+          Write-Host "Packaged $($assemblies.Count) compiled DLL assemblies."
+
+      - name: Upload compiled website artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: block16-website-build-output
+          path: artifacts/block16-website-bin/
+          if-no-files-found: error
+          retention-days: 7
