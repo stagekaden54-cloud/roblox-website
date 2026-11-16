@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - 'vercel-frontend/**'
+      - 'worker/**'
+      - 'tests/worker/**'
       - 'tests/browser/**'
       - 'playwright.config.js'
       - 'package.json'
@@ -13,6 +15,8 @@ on:
       - block16-rebrand
     paths:
       - 'vercel-frontend/**'
+      - 'worker/**'
+      - 'tests/worker/**'
       - 'tests/browser/**'
       - 'playwright.config.js'
       - 'package.json'
@@ -41,6 +45,9 @@ jobs:
 
       - name: Install test dependencies
         run: npm install --no-audit --no-fund
+
+      - name: Run Worker API unit tests
+        run: npm test
 
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
