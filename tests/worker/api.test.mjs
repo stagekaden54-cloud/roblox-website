@@ -147,7 +147,7 @@ test("confirmation validates Supabase user and rotates the matching refresh toke
   try {
     const response = await worker.fetch(new Request("https://block16.test/api/v1/auth/confirm", {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: { "content-type": "application/json", origin: "https://block16.test", "sec-fetch-site": "same-origin" },
       body: JSON.stringify({ access_token: "access-token-value-long-enough", refresh_token: "refresh-token-value" }),
     }), env);
     assert.equal(response.status, 200);
@@ -162,6 +162,26 @@ test("confirmation validates Supabase user and rotates the matching refresh toke
     assert.match(cookies, /HttpOnly/);
     assert.match(cookies, /Secure/);
     assert.match(cookies, /SameSite=Lax/);
+  } finally { globalThis.fetch = originalFetch; }
+});
+
+test("confirmation rejects cross-site requests before contacting Supabase", async () => {
+  const originalFetch = globalThis.fetch;
+  let providerCalls = 0;
+  globalThis.fetch = async () => {
+    providerCalls += 1;
+    return Response.json({ id: "should-not-be-called" });
+  };
+  try {
+    const response = await worker.fetch(new Request("https://block16.test/api/v1/auth/confirm", {
+      method: "POST",
+      headers: { "content-type": "application/json", origin: "https://attacker.example", "sec-fetch-site": "cross-site" },
+      body: JSON.stringify({ access_token: "access-token-value-long-enough", refresh_token: "refresh-token-value" }),
+    }), env);
+    assert.equal(response.status, 403);
+    assert.equal((await response.json()).error.code, "CROSS_SITE_REQUEST");
+    assert.equal(providerCalls, 0);
+    assert.equal(response.headers.get("set-cookie"), null);
   } finally { globalThis.fetch = originalFetch; }
 });
 
