@@ -159,3 +159,115 @@ jobs:
           path: artifacts/block16-website-bin/
           if-no-files-found: error
           retention-days: 7
+
+      - name: Publish complete website staging directory
+        shell: pwsh
+        run: |
+          $publishPath = Join-Path $env:GITHUB_WORKSPACE 'artifacts\block16-website-staging'
+
+          if (Test-Path $publishPath) {
+            Remove-Item -Path $publishPath -Recurse -Force
+          }
+
+          New-Item -ItemType Directory -Path $publishPath -Force | Out-Null
+
+          & msbuild Website/Roblox.Website.csproj /m /p:Configuration=Release "/p:Platform=Any CPU" /p:DeployOnBuild=true /p:WebPublishMethod=FileSystem "/p:PublishUrl=$publishPath" /p:DeleteExistingFiles=true /p:PrecompileBeforePublish=false "/p:VSToolsPath=$env:VSToolsPath" "/p:VisualStudioVersion=$env:VisualStudioVersion" /verbosity:minimal
+
+          if ($LASTEXITCODE -ne 0) {
+            throw "The ASP.NET website publish step failed with exit code $LASTEXITCODE"
+          }
+
+          $requiredFiles = @(
+            'Default.aspx',
+            'Global.asax',
+            'Web.config',
+            'bin\Roblox.Website.dll'
+          )
+
+          foreach ($relativePath in $requiredFiles) {
+            $candidate = Join-Path $publishPath $relativePath
+            if (-not (Test-Path $candidate -PathType Leaf)) {
+              throw "The staging publish output is missing required file: $relativePath"
+            }
+          }
+
+          # The environment settings file is marked as None in the legacy project,
+          # but Web.config loads it with configSource at runtime. Include it explicitly.
+          $environmentSettings = Join-Path $env:GITHUB_WORKSPACE 'Website\App_Data\Configuration\Roblox.Configuration.Properties.EnvironmentSettings.config'
+          $environmentSettingsTarget = Join-Path $publishPath 'App_Data\Configuration\Roblox.Configuration.Properties.EnvironmentSettings.config'
+          if (-not (Test-Path $environmentSettings -PathType Leaf)) {
+            throw "Required runtime configuration source is missing: $environmentSettings"
+          }
+          New-Item -ItemType Directory -Path (Split-Path $environmentSettingsTarget) -Force | Out-Null
+          Copy-Item -Path $environmentSettings -Destination $environmentSettingsTarget -Force
+
+          # Remove debug symbols from the staging package; they are not required to run the site.
+          Get-ChildItem -Path $publishPath -Filter '*.pdb' -File -Recurse | Remove-Item -Force
+
+          $siteSettingsPath = Join-Path $publishPath 'App_Data\Configuration\site-settings.json'
+          if (Test-Path $siteSettingsPath -PathType Leaf) {
+            $siteSettings = Get-Content -Path $siteSettingsPath -Raw | ConvertFrom-Json
+            if ($siteSettings.Installer.ClientInstallHost -eq 'localhost') {
+              Write-Warning 'ClientInstallHost is still localhost. Update this setting to the public client download host before staging tests on another device.'
+            }
+          }
+
+          $readme = @'
+          BLOCK16 WEBSITE STAGING PACKAGE
+
+          This package contains the published ASP.NET Web Forms website and its compiled application assemblies.
+
+          HOSTING REQUIREMENTS
+          - Windows Server with IIS.
+          - ASP.NET Framework 4.7.2 / .NET Framework CLR v4.0.
+          - IIS application pool using the Integrated pipeline.
+          - HTTPS configured before enabling authentication cookies.
+
+          BEFORE RUNNING
+          1. Review Web.config and every file under App_Data/Configuration and App_Data/config.
+          2. Configure only services, databases, and credentials that you own and have permission to use.
+          3. Replace localhost in App_Data/Configuration/site-settings.json with the intended public client-install host.
+          4. Review environment-specific domains and identifiers in Roblox.Configuration.Properties.EnvironmentSettings.config.
+          5. Confirm required database and service dependencies are available. This package does not provision them.
+          6. Keep account registration disabled until the legacy authentication and password-storage design has been replaced and reviewed.
+          7. Test privately before exposing the application to the public internet.
+
+          SAFETY / SCOPE
+          - This is a staging package, not a production deployment.
+          - No secrets should be added to source control or this artifact.
+          - The package does not include a database, external services, IIS configuration, or production credentials.
+          - Build success confirms compilation and packaging only; it does not prove the website starts or that every route works.
+          '@
+          $readme | Set-Content -Path (Join-Path $publishPath 'STAGING-README.txt') -Encoding utf8
+
+          $files = @(Get-ChildItem -Path $publishPath -File -Recurse | Sort-Object FullName)
+          if ($files.Count -lt 10) {
+            throw "Staging package looks incomplete: only $($files.Count) files were published."
+          }
+
+          $manifest = @(
+            'BLOCK16 complete website staging package'
+            "Commit: $env:GITHUB_SHA"
+            "Branch: $env:GITHUB_REF_NAME"
+            "Built at (UTC): $([DateTime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ'))"
+            "File count: $($files.Count)"
+            "PDB files: 0"
+            ''
+            'Files (relative path | bytes | SHA-256):'
+          )
+
+          $manifest += $files | ForEach-Object {
+            $relative = $_.FullName.Substring($publishPath.Length).TrimStart('\')
+            "$relative | $($_.Length) | $((Get-FileHash $_.FullName -Algorithm SHA256).Hash)"
+          }
+
+          $manifest | Set-Content -Path (Join-Path $publishPath 'STAGING-MANIFEST.txt') -Encoding utf8
+          Write-Host "Validated complete staging directory with $($files.Count) files."
+
+      - name: Upload complete website staging artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: block16-complete-website-staging
+          path: artifacts/block16-website-staging/
+          if-no-files-found: error
+          retention-days: 7
