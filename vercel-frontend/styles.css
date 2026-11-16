@@ -1,82 +1,209 @@
-*{box-sizing:border-box}
-:root{font-family:Arial,Helvetica,sans-serif;color:#393b3d;background:#f2f4f5;font-synthesis:none}
-html{scroll-behavior:smooth}
-body{margin:0;min-width:320px;background:#f2f4f5}
-a{color:#0879bd;text-decoration:none}
-a:hover{text-decoration:underline}
-.top-strip{background:#00a2ff;border-bottom:1px solid #0786cf;box-shadow:0 1px 3px #0002}
-.top-strip-inner{width:min(100%,1000px);min-height:54px;margin:auto;padding:0 15px;display:flex;align-items:center;gap:22px}
-.wordmark{display:flex;align-items:center;flex:none}
-.wordmark img{display:block;width:132px;height:40px;object-fit:contain}
-.main-nav{display:flex;align-items:stretch;align-self:stretch;gap:3px}
-.main-nav a{display:flex;align-items:center;padding:0 14px;color:#fff;font-size:14px;font-weight:bold;text-shadow:0 1px #007ac1}
-.main-nav a:hover,.main-nav a.selected{background:#078bd8;text-decoration:none}
-.account-nav{margin-left:auto;display:flex;align-items:center;gap:13px;white-space:nowrap}
-.account-nav a{color:#fff;font-size:13px;font-weight:bold}
-.account-nav .signup-link{padding:8px 12px;border:1px solid #fff;border-radius:3px}
-.preview-label{padding:3px 6px;border-radius:2px;background:#eaf7ff;color:#1673a8;font-size:10px;font-weight:bold;text-transform:uppercase;letter-spacing:.5px}
-.page-shell{width:min(970px,calc(100% - 28px));margin:18px auto 38px}
-.announcement{display:flex;gap:8px;align-items:center;margin-bottom:14px;padding:10px 13px;background:#fff8df;border:1px solid #ead28a;color:#705b1d;font-size:12px;line-height:1.45}
-.announcement strong{white-space:nowrap}
-.welcome-panel{position:relative;display:grid;grid-template-columns:1.1fr .9fr;min-height:238px;overflow:hidden;background:#fff;border:1px solid #d3d7da;box-shadow:0 1px 2px #0000000c}
-.welcome-copy{position:relative;z-index:1;padding:27px 30px}
-.small-heading{margin:0 0 9px;color:#888;font-size:10px;font-weight:bold;letter-spacing:1.5px}
-h1{margin:0;color:#444;font-size:35px;line-height:1.08;letter-spacing:-1px}
-h1 span{color:#00a2ff}
-.welcome-copy>p:not(.small-heading){max-width:410px;margin:12px 0 18px;color:#777;font-size:14px;line-height:1.55}
-.blue-button{display:inline-block;padding:9px 17px;border-radius:3px;background:#00a2ff;color:white;font-size:13px;font-weight:bold;box-shadow:inset 0 -2px #0088d7}
-.blue-button:hover{background:#078bd8;text-decoration:none}
-.welcome-art{position:relative;min-height:238px;overflow:hidden;background:linear-gradient(165deg,#bce9ff 0%,#e5f7ff 62%,#92d3ef 63%,#6bb9e0 100%)}
-.sun{position:absolute;top:28px;right:54px;width:58px;height:58px;border-radius:50%;background:#ffdc75;box-shadow:0 0 0 12px #ffdc7533}
-.cloud{position:absolute;width:74px;height:20px;border-radius:20px;background:#fff;opacity:.85}
-.cloud:before,.cloud:after{position:absolute;content:"";bottom:5px;border-radius:50%;background:inherit}
-.cloud:before{left:12px;width:28px;height:28px}.cloud:after{left:34px;width:22px;height:22px}
-.cloud-one{top:54px;left:25px}.cloud-two{top:94px;right:20px;transform:scale(.8)}
-.block{position:absolute;bottom:37px;width:76px;height:76px;border:2px solid #fff9;transform:rotate(45deg) skew(-8deg,-8deg);box-shadow:7px 8px 0 #367da655}
-.block-one{left:25%;background:#f6bd43}.block-two{left:48%;bottom:23px;width:91px;height:91px;background:#5fba78}.block-three{left:70%;bottom:42px;width:62px;height:62px;background:#ed8068}
-.art-caption{position:absolute;right:14px;bottom:10px;color:#fff;font-size:9px;font-weight:bold;letter-spacing:1.6px;text-shadow:0 1px 2px #287aa5}
-.content-columns{display:grid;grid-template-columns:minmax(0,1fr) 286px;gap:16px;margin-top:17px}
-.section-heading{display:flex;align-items:center;justify-content:space-between;margin:0 0 9px;padding-bottom:7px;border-bottom:1px solid #cfd4d8}
-.section-heading h2,.side-box h2{margin:0;color:#555;font-size:17px;font-weight:normal}
-.section-note{color:#999;font-size:10px;text-transform:uppercase;letter-spacing:.5px}
-.game-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
-.game-card{overflow:hidden;background:#fff;border:1px solid #d3d7da}
-.game-art{position:relative;display:flex;align-items:center;justify-content:center;height:112px;overflow:hidden;color:#fff;text-shadow:0 2px 3px #0005;font-size:14px;font-weight:bold;letter-spacing:1px}
-.game-art:before,.game-art:after{position:absolute;content:"";border:2px solid #ffffff55;transform:rotate(45deg)}
-.game-art:before{width:65px;height:65px;left:15px;bottom:-27px;background:#ffffff22}
-.game-art:after{width:42px;height:42px;right:18px;top:-19px;background:#ffffff22}
-.game-art span{position:relative;z-index:1}
-.game-art b{position:absolute;right:9px;bottom:7px;font-size:10px;opacity:.7}
-.art-adventure{background:linear-gradient(145deg,#54b5c8,#236e9e)}
-.art-city{background:linear-gradient(145deg,#f0b64f,#cb713b)}
-.art-obstacle{background:linear-gradient(145deg,#9b86cf,#5552a0)}
-.game-info{padding:9px 10px 11px}
-.game-info h3{margin:0 0 5px;color:#444;font-size:13px}
-.game-info p{min-height:28px;margin:0 0 8px;color:#888;font-size:11px;line-height:1.35}
-.game-state{color:#999;font-size:10px;font-weight:bold;text-transform:uppercase}
-.catalog-heading{margin-top:20px}
-.catalog-panel{display:flex;gap:13px;align-items:center;padding:14px;background:#fff;border:1px solid #d3d7da}
-.catalog-icon{display:flex;align-items:center;justify-content:center;flex:none;width:45px;height:45px;border-radius:4px;background:#e5f5ff;color:#00a2ff;font-size:24px}
-.catalog-panel h3{margin:0 0 5px;color:#555;font-size:13px}
-.catalog-panel p{margin:0;color:#888;font-size:11px;line-height:1.5}
-.side-column{display:flex;flex-direction:column;gap:12px}
-.side-box{padding:13px;background:#fff;border:1px solid #d3d7da}
-.side-box h2{padding-bottom:8px;margin-bottom:9px;border-bottom:1px solid #e2e4e6;font-size:15px}
-.side-box p{margin:0 0 9px;color:#777;font-size:12px;line-height:1.55}
-.side-box>a{font-size:11px;font-weight:bold}
-.status-list{margin:0;padding:0;list-style:none}
-.status-list li{display:grid;grid-template-columns:9px 1fr auto;gap:7px;align-items:center;padding:7px 0;border-bottom:1px solid #f0f0f0;color:#666;font-size:10px}
-.status-list li:last-child{border-bottom:0}
-.status-list b{color:#888;font-size:9px;font-weight:normal}
-.status-dot{width:7px;height:7px;border-radius:50%;background:#bbb}
-.status-dot.ready{background:#55b978}.status-dot.progress{background:#f0b849}.status-dot.pending{background:#b7bdc2}
-.side-box .status-footnote{margin:9px 0 0;color:#999;font-size:10px}
-.news-item{padding:5px 0 8px;border-bottom:1px solid #eee}
-.news-item:last-child{padding-bottom:0;border-bottom:0}
-.news-date{color:#999;font-size:9px;font-weight:bold;letter-spacing:.7px}
-.news-item p{margin:4px 0 0}
-.site-footer{background:#e5e8ea;border-top:1px solid #d1d5d8}
-.footer-inner{width:min(970px,calc(100% - 28px));margin:auto;padding:16px 0;display:flex;justify-content:space-between;gap:12px;color:#888;font-size:10px}
-.footer-inner a{font-weight:bold}
-@media(max-width:720px){.top-strip-inner{flex-wrap:wrap;gap:5px 12px;padding:7px 12px}.wordmark img{width:116px;height:36px}.main-nav{order:3;width:100%;height:36px;overflow-x:auto}.main-nav a{padding:0 12px;font-size:12px}.account-nav{gap:9px}.welcome-panel{grid-template-columns:1fr}.welcome-copy{padding:22px}.welcome-art{min-height:140px}.content-columns{grid-template-columns:1fr}.side-column{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.side-box:last-child{grid-column:1/-1}.footer-inner{flex-wrap:wrap}}
-@media(max-width:460px){.announcement{align-items:flex-start;flex-direction:column;gap:3px}.welcome-copy{padding:20px}.welcome-copy h1{font-size:31px}.game-grid{grid-template-columns:1fr}.game-art{height:120px}.side-column{grid-template-columns:1fr}.side-box:last-child{grid-column:auto}.footer-inner{flex-direction:column}}
+
+
+#header {
+    width:990px;
+    margin:0 auto;
+    padding:15px 0px 0px 0px;
+}
+
+#logo {
+    width:155px;
+    margin-left:15px;
+    float:left;
+}
+
+/*Login pop-up*/
+#login {
+    position:relative;
+    margin:15px 24px 0 0;
+    float:right;
+    color:#fff;
+    font-size:12px;
+}
+#loginButton {
+	display:inline-block;
+    cursor:pointer;
+    padding:2px 2px 5px 0;
+    background-position:bottom;
+    position:relative;
+}
+#loginButton:hover {
+    color:#d8e6fc;
+}
+#loginButton span {
+	padding:2px 15px 5px 0px;
+    background:url(https://raw.githubusercontent.com/stagekaden54-cloud/roblox-website/block16-rebrand/Website/Images/LandingGames/loginArrow.png) no-repeat 40px 7px;
+}
+#loginButton:hover span {
+    background-position:40px -41px;
+}
+#loginBox {
+    position:absolute;
+    top:22px;
+    right:0px;
+    color:#000;
+    display:none;
+    width:230px; 
+    background:#edeff3;	
+}
+
+#loginButton.active {
+    color:#00218c;
+    background-color:#edeff3;
+}
+#loginButton.active span {
+    background-position:40px -86px;
+}
+#loginBox fieldset {
+    margin:0 0 5px 0;
+    display:block;
+    border:0;
+    padding:0;
+}
+fieldset#body {
+    padding:10px 15px;
+    margin:0;
+}
+#loginBox #body fieldset label {
+    display:block;
+    float:none;
+    margin:0 0 0px 0;
+}
+#loginBox input {
+    width:92%;
+    border:1px solid #899caa;
+    color:#3a454d;
+    padding:3px 7px;
+    font-size:12px;
+}
+#loginBox #loginSubmit {
+    width:auto;
+    float:right;
+    background:url(https://raw.githubusercontent.com/stagekaden54-cloud/roblox-website/block16-rebrand/Website/Images/LandingGames/login_btn.png) repeat-x;
+    color:#fff;
+    padding:3px 10px 3px 10px;
+    border:1px solid #339cdf;
+    margin:5px 0 5px 0;
+    cursor:pointer;
+    position:relative;
+}
+#loginBox #body fieldset a {
+    color:#757d85;
+    text-decoration:underline;
+    font-size:12px;
+}
+#line {
+    width:100%;
+    height:1px;
+    background:#0047ba;
+}
+#facebook_btn {
+    width:230px;
+    height:30px;
+    margin:10px 0 0 0;
+    background:#edeff3;
+    text-align:center;
+}
+input:focus {
+    outline:none;
+}
+
+#container {
+    width:990px;
+    margin:0 auto;
+}
+
+#videoContainer {
+    width:950px;
+    height:371px;
+    background:url(https://raw.githubusercontent.com/stagekaden54-cloud/roblox-website/block16-rebrand/Website/Images/LandingGames/video_bg.png) no-repeat;
+    margin:0 0 15px 16px;
+    float:left;
+}
+#video {
+    margin:6px 0 0 5px;
+    float:left;
+}
+
+#link_text {
+		width:280px;
+		margin:150px 0 0 20px;
+    float:left;
+}
+
+a.crossroads, a.crossroads:visited {
+	width:330px;
+    height:298px;
+    display:block;
+    margin-right:10px;
+    background:url(https://raw.githubusercontent.com/stagekaden54-cloud/roblox-website/block16-rebrand/Website/Images/LandingGames/crossroads.gif) bottom no-repeat;
+    cursor:pointer;
+    float:left;
+}
+a.crossroads:hover {
+	background-position:top;
+}
+a.swordfight, a.swordfight:visited {
+	width:300px;
+    height:298px;
+    display:block;
+    margin-right:10px;
+    background:url(https://raw.githubusercontent.com/stagekaden54-cloud/roblox-website/block16-rebrand/Website/Images/LandingGames/swordfight.gif) bottom no-repeat;
+    cursor:pointer;
+    float:left;
+}
+a.swordfight:hover {
+	background-position:top;
+}
+a.seemoregames, a.seemoregames:visited {
+	width:330px;
+    height:298px;
+    display:block;
+    background:url(https://raw.githubusercontent.com/stagekaden54-cloud/roblox-website/block16-rebrand/Website/Images/LandingGames/seeMoreGames.gif) bottom no-repeat;
+    cursor:pointer;
+    float:left;
+}
+a.seemoregames:hover {
+	background-position:top;
+}
+
+#footer{
+    font-size:12px;
+    color:#457cb1;
+    background-color:#75a6d8;
+    margin:50px auto 0 auto;
+    text-align:center;
+}
+
+/* BLOCK16 static Vercel adaptation: retain legacy LandingGames styling,
+   while making the fixed-width 2010s layout usable on mobile. */
+html,body{margin:0;min-height:100%;font-family:Arial,Helvetica,sans-serif}
+body{background:#dce8f4 url("https://raw.githubusercontent.com/stagekaden54-cloud/roblox-website/block16-rebrand/Website/Images/LandingGames/page_bg.png") repeat-x top left;color:#24384e}
+#header,#container{max-width:990px;width:calc(100% - 24px)}
+#header{min-height:66px;overflow:visible}
+#logo{margin-left:15px;padding-top:6px;color:#fff;font-size:30px;font-weight:bold;letter-spacing:-1.5px;text-shadow:0 1px 2px #164b86}
+#login{margin-right:18px}
+#container{overflow:hidden}
+#videoContainer{max-width:950px;width:calc(100% - 32px);height:auto;min-height:300px;margin:0 16px 15px;float:none;box-sizing:border-box;background-size:100% 100%;display:flex;align-items:center;gap:24px;padding:24px}
+#video{float:none;margin:0;width:min(55%,500px);aspect-ratio:16/9;background:#162d4a;display:flex;align-items:center;justify-content:center;color:#fff;text-align:center}
+#video iframe{width:100%;height:100%;border:0}
+#link_text{float:none;width:auto;max-width:300px;margin:0;color:#164b86;font-size:25px;font-weight:bold;line-height:1.2}
+#link_text p{font-size:14px;font-weight:normal;line-height:1.5}
+.legacy-games{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:18px 0 0}
+.legacy-games a{background-size:auto 200%;text-indent:-9999px}
+.legacy-games a:hover{background-position:bottom}
+#footer{padding:16px 12px;margin-top:35px}
+#footer a{color:#fff}
+.static-note{max-width:960px;margin:12px auto;padding:9px 12px;background:#f4f8fc;border:1px solid #b8cce0;color:#3e5872;font-size:12px;line-height:1.45}
+@media(max-width:700px){
+ #header{padding-top:8px;min-height:58px}
+ #logo{font-size:24px;margin-left:8px}
+ #login{margin:8px 6px 0 0}
+ #videoContainer{flex-direction:column;align-items:stretch;padding:15px;gap:12px;min-height:0}
+ #video{width:100%;min-height:190px}
+ #link_text{max-width:none;margin:0;font-size:22px}
+ .legacy-games{gap:6px}
+ a.crossroads,a.crossroads:visited{width:min(330px,100%);height:220px;background-size:100% auto}
+ a.swordfight,a.swordfight:visited{width:min(300px,100%);height:220px;background-size:100% auto}
+ a.seemoregames,a.seemoregames:visited{width:min(330px,100%);height:220px;background-size:100% auto}
+}
