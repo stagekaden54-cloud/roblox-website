@@ -78,23 +78,40 @@ async function parseProviderResponse(response) {
   return { body };
 }
 
-function bearerToken(request) {
-  const value = request.headers.get("authorization") || "";
-  const match = value.match(/^Bearer\s+(.+)$/i);
-  return match ? match[1] : null;
+function cookieValue(request, name) {
+  const cookies = request.headers.get("cookie") || "";
+  const match = cookies.match(new RegExp(`(?:^|;\\s*)${name}=([^;]*)`));
+  return match ? decodeURIComponent(match[1]) : null;
 }
-
+function sessionHeaders(accessToken, refreshToken, expiresIn = 3600) {
+  const age = Math.max(60, Math.min(Number(expiresIn) || 3600, 604800));
+  return [`b16_access=${encodeURIComponent(accessToken)}; Path=/; Max-Age=${age}; HttpOnly; Secure; SameSite=Lax`,`b16_refresh=${encodeURIComponent(refreshToken)}; Path=/; Max-Age=2592000; HttpOnly; Secure; SameSite=Lax`];
+}
+function clearSessionHeaders() { return ["b16_access=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax","b16_refresh=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax"]; }
+function sessionJson(data, cookies = [], status = 200) {
+  const response = json(data, status); const headers = new Headers(response.headers);
+  for (const cookie of cookies) headers.append("set-cookie", cookie);
+  return new Response(response.body, { status: response.status, headers });
+}
 async function requireUser(request, env) {
-  const token = bearerToken(request);
-  if (!token) return { error: apiError("Sign in to continue.", 401, "UNAUTHENTICATED") };
-
-  const response = await supabaseFetch(env, "/auth/v1/user", {
-    headers: { authorization: `Bearer ${token}` },
-  });
-  if (!response.ok) return { error: apiError("Your session is invalid or expired. Please sign in again.", 401, "INVALID_SESSION") };
+  let token = cookieValue(request, "b16_access");
+  const refreshToken = cookieValue(request, "b16_refresh");
+  if (!token) token = (request.headers.get("authorization") || "").match(/^Bearer\\s+(.+)$/i)?.[1] || null;
+  if (!token && !refreshToken) return { error: apiError("Sign in to continue.", 401, "UNAUTHENTICATED") };
+  let response = token ? await supabaseFetch(env, "/auth/v1/user", { headers: { authorization: `Bearer ${token}` } }) : null;
+  let cookies = [];
+  if ((!response || !response.ok) && refreshToken) {
+    const refreshed = await supabaseFetch(env, "/auth/v1/token?grant_type=refresh_token", { method: "POST", body: JSON.stringify({ refresh_token: refreshToken }) });
+    const session = await refreshed.json().catch(() => ({}));
+    if (refreshed.ok && session.access_token && session.refresh_token) {
+      token = session.access_token; cookies = sessionHeaders(token, session.refresh_token, session.expires_in);
+      response = await supabaseFetch(env, "/auth/v1/user", { headers: { authorization: `Bearer ${token}` } });
+    }
+  }
+  if (!response?.ok) return { error: sessionJson({ error: { code: "INVALID_SESSION", message: "Your session has expired. Please sign in again." } }, clearSessionHeaders(), 401) };
   const user = await response.json().catch(() => null);
-  if (!user?.id) return { error: apiError("Your session is invalid or expired. Please sign in again.", 401, "INVALID_SESSION") };
-  return { user, token };
+  if (!user?.id) return { error: sessionJson({ error: { code: "INVALID_SESSION", message: "Your session has expired. Please sign in again." } }, clearSessionHeaders(), 401) };
+  return { user, token, cookies };
 }
 
 async function handleAuth(request, env, path) {
@@ -126,16 +143,7 @@ async function handleAuth(request, env, path) {
     const result = await parseProviderResponse(response);
     if (result.response) return result.response;
     const sessionCreated = Boolean(result.body?.access_token);
-    return json({
-      user: result.body?.user ? { id: result.body.user.id, email: result.body.user.email } : null,
-      session: sessionCreated ? {
-        access_token: result.body.access_token,
-        refresh_token: result.body.refresh_token,
-        expires_at: result.body.expires_at,
-        token_type: result.body.token_type,
-      } : null,
-      email_confirmation_required: !sessionCreated,
-    }, sessionCreated ? 201 : 202);
+    return sessionJson({ user: result.body?.user ? { id: result.body.user.id, email: result.body.user.email } : null, email_confirmation_required: !sessionCreated }, sessionCreated ? sessionHeaders(result.body.access_token, result.body.refresh_token, result.body.expires_in) : [], sessionCreated ? 201 : 202);
   }
 
   if (path === "/api/v1/auth/login" && request.method === "POST") {
@@ -155,15 +163,7 @@ async function handleAuth(request, env, path) {
     });
     const result = await parseProviderResponse(response);
     if (result.response) return result.response;
-    return json({
-      user: result.body?.user ? { id: result.body.user.id, email: result.body.user.email } : null,
-      session: {
-        access_token: result.body.access_token,
-        refresh_token: result.body.refresh_token,
-        expires_at: result.body.expires_at,
-        token_type: result.body.token_type,
-      },
-    });
+    return sessionJson({ user: result.body?.user ? { id: result.body.user.id, email: result.body.user.email } : null }, sessionHeaders(result.body.access_token, result.body.refresh_token, result.body.expires_in));
   }
 
   if (path === "/api/v1/auth/logout" && request.method === "POST") {
@@ -174,7 +174,7 @@ async function handleAuth(request, env, path) {
       headers: { authorization: `Bearer ${auth.token}` },
     });
     if (!response.ok) return apiError("Could not end the session. Please try again.", 502, "AUTH_PROVIDER_ERROR");
-    return json({ success: true });
+    return sessionJson({ success: true }, clearSessionHeaders());
   }
 
   return null;
@@ -190,7 +190,7 @@ async function handleProfile(request, env, path) {
     });
     if (!response.ok) return apiError("Could not load your profile.", 502, "DATABASE_ERROR");
     const profiles = await response.json();
-    return json({ user: { id: auth.user.id, email: auth.user.email }, profile: profiles[0] || null });
+    return sessionJson({ user: { id: auth.user.id, email: auth.user.email }, profile: profiles[0] || null }, auth.cookies);
   }
 
   if (path === "/api/v1/me" && request.method === "PATCH") {
@@ -232,7 +232,7 @@ async function handleProfile(request, env, path) {
     });
     if (!response.ok) return apiError("Could not update your profile.", 502, "DATABASE_ERROR");
     const profiles = await response.json();
-    return json({ profile: profiles[0] || null });
+    return sessionJson({ profile: profiles[0] || null }, auth.cookies);
   }
   return null;
 }
