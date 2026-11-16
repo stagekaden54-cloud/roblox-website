@@ -70,3 +70,18 @@ The page's **Archived 2016 artwork** section is intentionally separate from the 
 - `Website/Images/GameCarousel/img5.jpg`
 
 Those assets are displayed as archival artwork only. Their game titles and IDs are not supplied by the source files, so the preview does not invent them or make the images playable. The separate ASP.NET backend remains necessary for a real searchable catalogue, rankings, pagination, and launching.
+
+
+## BLOCK16 browser regression tests
+
+The static frontend has a Playwright browser test suite in `tests/browser/`. It runs against a local static server and checks the homepage metadata and landing area, accessible navigation dropdown behavior, catalogue search and genre filtering, sorting/reset controls, archive gallery structure, and page-level horizontal overflow.
+
+GitHub Actions runs the suite for relevant pull requests and updates to `block16-rebrand`. The suite uses Chromium in desktop and Pixel 7 mobile viewport projects. These checks cover browser behavior; they do not validate the separate ASP.NET backend, account services, game launching, or every physical device/browser combination.
+
+Run locally with Node.js 22 or newer:
+
+```sh
+npm install
+npx playwright install chromium
+npm run test:e2e
+```
