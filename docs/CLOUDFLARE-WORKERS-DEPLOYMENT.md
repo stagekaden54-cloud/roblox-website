@@ -14,6 +14,10 @@ This is an assets-only Worker configuration: it intentionally has no
 `main` entrypoint and no `ASSETS` binding. Cloudflare documents that the
 binding is unnecessary when there is no Worker script.
 
+The empty `previews` block is included because Wrangler's preview command
+requires it. It enables Cloudflare Workers Builds to create branch previews;
+it does not change the static asset directory or add backend functionality.
+
 ## Workers Builds settings
 
 After this pull request has been reviewed and merged, connect the GitHub
@@ -25,8 +29,7 @@ use:
 - Root directory: repository root (`.`)
 - Build command: leave empty (the frontend has no build step)
 - Deploy command: `npx wrangler deploy`
-- Preview command: keep Cloudflare's provided default unless Cloudflare's UI
-  indicates a required value
+- Preview command: `npx wrangler preview`
 - Preview builds: enable if you want branch previews
 
 Do not select the repository's default branch: it is `2016`, not
@@ -35,10 +38,10 @@ Do not select the repository's default branch: it is `2016`, not
 ## Important deployment boundary
 
 Adding this configuration does not deploy anything or change the existing
-Worker. Do not run a deployment until the pull request is reviewed and merged
-and the GitHub connection/branch settings have been checked. The first
-successful deployment will replace the Worker’s current starter response with
-the static BLOCK16 frontend.
+Worker. Do not run a production deployment until the pull request is reviewed
+and merged and the GitHub connection/branch settings have been checked. The
+first successful production deployment will replace the Worker's current
+starter response with the static BLOCK16 frontend.
 
 This frontend deployment does not add authentication, registration, account
 recovery, payments, membership purchases, or game launching. Those features
