@@ -125,13 +125,24 @@ test("signup sends the account page as Supabase confirmation redirect", async ()
   } finally { globalThis.fetch = originalFetch; }
 });
 
-test("confirmation validates Supabase user and sets HttpOnly session cookies without returning tokens", async () => {
+test("confirmation validates Supabase user and rotates the matching refresh token into HttpOnly cookies", async () => {
   const originalFetch = globalThis.fetch;
   let requestedAuthorization = "";
+  let calls = 0;
   globalThis.fetch = async (input, init = {}) => {
-    assert.match(String(input), /\/auth\/v1\/user$/);
-    requestedAuthorization = new Headers(init.headers).get("authorization");
-    return Response.json({ id: "user-verified", email: "verified@example.com", email_confirmed_at: "2026-11-16T00:00:00Z" });
+    calls += 1;
+    if (String(input).endsWith("/auth/v1/user")) {
+      requestedAuthorization = new Headers(init.headers).get("authorization");
+      return Response.json({ id: "user-verified", email: "verified@example.com", email_confirmed_at: "2026-11-16T00:00:00Z" });
+    }
+    assert.match(String(input), /\/auth\/v1\/token\?grant_type=refresh_token$/);
+    assert.deepEqual(JSON.parse(init.body), { refresh_token: "refresh-token-value" });
+    return Response.json({
+      user: { id: "user-verified", email: "verified@example.com" },
+      access_token: "rotated-access-token",
+      refresh_token: "rotated-refresh-token",
+      expires_in: 3600
+    });
   };
   try {
     const response = await worker.fetch(new Request("https://block16.test/api/v1/auth/confirm", {
@@ -141,12 +152,13 @@ test("confirmation validates Supabase user and sets HttpOnly session cookies wit
     }), env);
     assert.equal(response.status, 200);
     assert.equal(requestedAuthorization, "Bearer access-token-value-long-enough");
+    assert.equal(calls, 2);
     const body = await response.json();
     assert.deepEqual(body, { user: { id: "user-verified", email: "verified@example.com" } });
     assert.equal(JSON.stringify(body).includes("access-token"), false);
     const cookies = response.headers.get("set-cookie") || "";
-    assert.match(cookies, /b16_access=access-token-value-long-enough/);
-    assert.match(cookies, /b16_refresh=refresh-token-value/);
+    assert.match(cookies, /b16_access=rotated-access-token/);
+    assert.match(cookies, /b16_refresh=rotated-refresh-token/);
     assert.match(cookies, /HttpOnly/);
     assert.match(cookies, /Secure/);
     assert.match(cookies, /SameSite=Lax/);
