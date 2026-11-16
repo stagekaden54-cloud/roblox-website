@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A BLOCK16 membership concept preview. No plans or purchases are active.">
+  <meta name="theme-color" content="#114081">
+  <title>BLOCK16 — Membership</title>
+  <link rel="icon" href="/assets/block16-icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/membership.css">
+</head>
+<body>
+  <header id="header">
+    <div class="legacy-header-inner">
+      <a id="logo" href="/" aria-label="BLOCK16 home"><img src="/assets/block16-logo.svg" alt="BLOCK16"></a>
+      <nav class="legacy-navigation" aria-label="Main navigation">
+        <ul class="legacy-navigation-list">
+          <li><a href="#" aria-disabled="true" data-inactive-link>My Block16</a></li>
+          <li><a href="/games.html">Games</a></li>
+          <li><a href="/catalog.html">Catalog</a></li>
+          <li><a href="#" aria-disabled="true" data-inactive-link>Build</a></li>
+          <li class="current"><a href="/membership.html" aria-current="page">Membership</a></li>
+          <li><a href="#" aria-disabled="true" data-inactive-link>Forum</a></li>
+          <li class="legacy-more" id="legacyMore">
+            <button type="button" class="legacy-more-toggle" aria-expanded="false" aria-controls="legacyMoreMenu">More <span class="legacy-arrow" aria-hidden="true"></span></button>
+            <ul class="legacy-dropdown" id="legacyMoreMenu" hidden>
+              <li><a href="#" aria-disabled="true" data-inactive-link>Browse</a></li>
+              <li><a href="#" aria-disabled="true" data-inactive-link>Contests</a></li>
+              <li><a href="#" aria-disabled="true" data-inactive-link>News</a></li>
+              <li><a href="#" aria-disabled="true" data-inactive-link>Help</a></li>
+            </ul>
+          </li>
+        </ul>
+      </nav>
+      <div id="login"><span id="loginButton" aria-disabled="true" title="Account services are not connected yet">Login</span></div>
+    </div>
+  </header>
+
+  <main class="membership-page">
+    <p class="membership-notice">Concept preview — membership is not active. There are no available plans, prices, paid benefits, or purchase actions.</p>
+    <section class="membership-hero" aria-labelledby="membershipTitle">
+      <div class="membership-hero-copy">
+        <p class="membership-eyebrow">A future BLOCK16 feature</p>
+        <h1 id="membershipTitle">BLOCK16 Membership</h1>
+        <p>We’re exploring a classic-era membership experience with BLOCK16’s own identity. This page is a visual preview, not an offer or subscription service.</p>
+        <span class="membership-status">Design preview · Not available to purchase</span>
+      </div>
+      <img class="membership-hero-art" src="/assets/membership-artwork-blue.svg" alt="Reworked blue membership cap with a BLOCK16 emblem">
+    </section>
+
+    <section class="membership-artwork" aria-labelledby="membershipArtworkTitle">
+      <div class="membership-section-heading">
+        <h2 id="membershipArtworkTitle">BLOCK16 artwork studies</h2>
+        <p>These are visual treatments of three existing legacy membership images, updated with BLOCK16 colors and an original emblem. They are artwork variants only—not membership levels or promised benefits.</p>
+      </div>
+      <div class="membership-artwork-grid">
+        <article class="membership-art-card">
+          <img src="/assets/membership-artwork-blue.svg" alt="Blue BLOCK16 membership artwork study" loading="lazy">
+          <h3>Blue study</h3>
+          <p>Recolored from the legacy blue cap image.</p>
+        </article>
+        <article class="membership-art-card">
+          <img src="/assets/membership-artwork-silver.svg" alt="Silver BLOCK16 membership artwork study" loading="lazy">
+          <h3>Silver study</h3>
+          <p>Recolored from the legacy silver cap image.</p>
+        </article>
+        <article class="membership-art-card">
+          <img src="/assets/membership-artwork-gold.svg" alt="Gold BLOCK16 membership artwork study" loading="lazy">
+          <h3>Gold study</h3>
+          <p>Recolored from the legacy black-and-gold cap image.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="membership-future" aria-labelledby="membershipFutureTitle">
+      <h2 id="membershipFutureTitle">What happens next?</h2>
+      <p>Membership details will only be published after BLOCK16 has defined its own features, reviewed the backend, and completed the necessary project and artwork permissions checks.</p>
+    </section>
+  </main>
+
+  <footer id="footer">
+    BLOCK16 — independent, unofficial classic-era revival project.
+    <a href="https://github.com/stagekaden54-cloud/roblox-website" target="_blank" rel="noopener noreferrer">View source</a>
+    <p class="static-note">Static design preview. No account, billing, subscription, or purchase service is connected.</p>
+  </footer>
+  <script>
+    (() => {
+      const menu = document.getElementById('legacyMore');
+      const toggle = menu.querySelector('.legacy-more-toggle');
+      const dropdown = document.getElementById('legacyMoreMenu');
+      toggle.addEventListener('click', () => {
+        const open = toggle.getAttribute('aria-expanded') !== 'true';
+        toggle.setAttribute('aria-expanded', String(open));
+        dropdown.hidden = !open;
+        menu.classList.toggle('active', open);
+      });
+      document.addEventListener('click', (event) => {
+        if (!menu.contains(event.target)) {
+          toggle.setAttribute('aria-expanded', 'false');
+          dropdown.hidden = true;
+          menu.classList.remove('active');
+        }
+      });
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+          toggle.setAttribute('aria-expanded', 'false');
+          dropdown.hidden = true;
+          menu.classList.remove('active');
+          toggle.focus();
+        }
+      });
+      document.querySelectorAll('[data-inactive-link]').forEach((link) => {
+        link.addEventListener('click', (event) => event.preventDefault());
+      });
+    })();
+  </script>
+</body>
+</html>

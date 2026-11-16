@@ -1,0 +1,32 @@
+.membership-page{max-width:990px;width:calc(100% - 24px);margin:16px auto 28px;color:#263d56}
+.membership-notice{margin:0 0 14px;padding:9px 12px;background:#fff4d9;border:1px solid #e6c77e;color:#72551d;font-size:12px;line-height:1.45}
+.membership-hero{display:flex;align-items:center;justify-content:space-between;gap:24px;min-height:250px;padding:24px 30px;background:linear-gradient(135deg,#edf4fb 0%,#d6e5f4 55%,#b9d1e9 100%);border:1px solid #a9bfd5;box-shadow:0 1px 2px rgba(24,55,85,.12)}
+.membership-hero-copy{max-width:620px}
+.membership-eyebrow{margin:0 0 8px;color:#4777a7;font-size:12px;font-weight:bold;text-transform:uppercase;letter-spacing:.08em}
+.membership-hero h1{margin:0 0 12px;color:#1b4774;font-size:32px;line-height:1.1}
+.membership-hero-copy>p:not(.membership-eyebrow){max-width:560px;margin:0 0 16px;font-size:15px;line-height:1.6}
+.membership-status{display:inline-block;padding:6px 10px;background:#fff;border:1px solid #a8bfd7;color:#315e88;font-size:12px;font-weight:bold}
+.membership-hero-art{display:block;flex:0 0 192px;width:192px;height:168px;object-fit:contain;filter:drop-shadow(0 5px 4px rgba(24,55,85,.18))}
+.membership-artwork{margin-top:24px;padding:18px;background:#fff;border:1px solid #c5d3e1}
+.membership-section-heading h2,.membership-future h2{margin:0 0 8px;color:#244f7c;font-size:20px}
+.membership-section-heading p{max-width:760px;margin:0;color:#526a81;font-size:13px;line-height:1.55}
+.membership-artwork-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:18px}
+.membership-art-card{min-width:0;padding:12px;text-align:center;background:#f5f8fb;border:1px solid #d3dfeb}
+.membership-art-card img{display:block;width:144px;height:126px;max-width:100%;object-fit:contain;margin:0 auto 8px}
+.membership-art-card h3{margin:0 0 5px;color:#244f7c;font-size:14px}
+.membership-art-card p{margin:0;color:#61768a;font-size:12px;line-height:1.45}
+.membership-future{margin-top:18px;padding:18px 20px;background:#edf4fa;border-left:4px solid #4c82b6}
+.membership-future p{margin:0;color:#4b647c;font-size:13px;line-height:1.55}
+.legacy-navigation-list>li.current{background:#285b91 url("https://raw.githubusercontent.com/stagekaden54-cloud/roblox-website/block16-rebrand/Website/Images/RevisedHeader/bg-main_menu_hover.png") repeat-x}
+@media(max-width:700px){
+ .membership-page{width:calc(100% - 20px);margin:10px auto 20px}
+ .membership-hero{flex-direction:column-reverse;align-items:flex-start;gap:8px;padding:18px}
+ .membership-hero-art{align-self:center;width:160px;height:140px}
+ .membership-hero h1{font-size:26px}
+ .membership-artwork{padding:13px}
+ .membership-artwork-grid{grid-template-columns:1fr;gap:10px}
+ .membership-art-card{display:grid;grid-template-columns:100px minmax(0,1fr);grid-template-rows:auto 1fr;align-items:center;text-align:left;column-gap:12px}
+ .membership-art-card img{grid-row:1 / span 2;width:100px;height:88px;margin:0}
+ .membership-art-card h3{align-self:end}
+ .membership-art-card p{align-self:start}
+}

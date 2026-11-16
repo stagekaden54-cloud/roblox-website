@@ -44,3 +44,10 @@ Set the Vercel project's Root Directory to `vercel-frontend`. No framework or bu
 - Category selection, category search, and reset work locally in `catalog.js`. The selected category displays a short neutral description and clearly states that real listings are not connected.
 - The source repository does not provide a verified static catalog inventory suitable for this Vercel page. No item names, creator identities, prices, Robux balances, limited-item claims, ratings, purchase controls, or inventory data are invented. Search and purchases remain backend work.
 - The homepage and Games page Catalog navigation now point to `/catalog.html`; other unfinished navigation and account actions remain disabled.
+
+
+## Static BLOCK16 Membership concept preview
+- `membership.html` is an independent BLOCK16 concept page. It does not offer real plans, pricing, benefits, subscriptions, billing, or purchase actions.
+- The three badge studies are code-edited SVG composites based on the repository's 2016 source images `Website/Images/Upgrades/img-bc.png`, `img-tbc.png`, and `img-obc.png`. They use SVG recoloring and an original BLOCK16 emblem; no AI image-generation tools or generated artwork were used.
+- The original source images are embedded into the modified SVG files. This is a visual adaptation, not proof that the underlying image rights have transferred. The repository has no license file; obtain/confirm permission from the relevant rights holders before treating these assets as cleared for public redistribution.
+- The page and its artwork are a visual study only. They do not represent actual membership tiers or promised features. Membership navigation links point to this static page; account and payment actions remain disconnected.
