@@ -40,6 +40,774 @@ jobs:
       - name: Check out source
         uses: actions/checkout@v4
 
+      - name: Validate staging safety defaults
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          [xml]$environment = Get-Content 'Website/App_Data/Configuration/Roblox.Configuration.Properties.EnvironmentSettings.config' -Raw
+          [xml]$gameLaunch = Get-Content 'Website/App_Data/Configuration/Roblox.GameLaunch.Properties.Settings.config' -Raw
+          [xml]$machineKey = Get-Content 'Website/App_Data/Configuration/machinekey.config' -Raw
+          [xml]$webConfig = Get-Content 'Website/Web.config' -Raw
+          $siteSettings = Get-Content 'Website/App_Data/Configuration/site-settings.json' -Raw | ConvertFrom-Json
+
+          $apiKey = $environment.Roblox.Configuration.Properties.EnvironmentSettings.setting |
+            Where-Object { $_.name -eq 'EnvironmentApiKey' } |
+            ForEach-Object { $_.value }
+          if (-not [string]::IsNullOrWhiteSpace($apiKey)) {
+            throw 'Staging safety check failed: EnvironmentApiKey must be empty in tracked configuration.'
+          }
+
+          foreach ($name in @('ApplicationDomain','CdnDomain','InternalServicesDomain','ChinaBaseDomain','ChinaCdnDomain')) {
+            $value = $environment.Roblox.Configuration.Properties.EnvironmentSettings.setting |
+              Where-Object { $_.name -eq $name } |
+              ForEach-Object { $_.value }
+            if ($value -notmatch '\.invalid        uses: microsoft/setup-msbuild@v2
+
+      - name: Add NuGet
+        uses: NuGet/setup-nuget@v2
+
+      - name: Install and locate ASP.NET Web Application build tools
+        shell: pwsh
+        run: |
+          $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe'
+          $vsPath = & $vswhere -latest -products '*' -requires Microsoft.Component.MSBuild -property installationPath
+          if (-not $vsPath -or -not (Test-Path $vsPath)) {
+            throw 'A Visual Studio installation with MSBuild was not found on this runner.'
+          }
+
+          $msbuildExe = Join-Path $vsPath 'MSBuild\Current\Bin\MSBuild.exe'
+          if (-not (Test-Path $msbuildExe)) {
+            throw "MSBuild was not found under the selected Visual Studio installation: $vsPath"
+          }
+
+          $msbuildVersion = (Get-Item $msbuildExe).VersionInfo.ProductVersion
+          $vsVersion = "$(([int]($msbuildVersion.Split('.')[0])).ToString()).0"
+          $vsToolsPath = Join-Path $vsPath "MSBuild\Microsoft\VisualStudio\v$vsVersion"
+          $targets = Join-Path $vsToolsPath 'WebApplications\Microsoft.WebApplication.targets'
+
+          if (-not (Test-Path $targets)) {
+            $installer = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vs_installer.exe'
+            if (-not (Test-Path $installer)) {
+              throw "Visual Studio Installer was not found; cannot add WebBuildTools to $vsPath"
+            }
+
+            Write-Host "Installing Microsoft.VisualStudio.Workload.WebBuildTools into $vsPath"
+            $process = Start-Process -FilePath $installer -ArgumentList @(
+              'modify',
+              '--installPath', $vsPath,
+              '--add', 'Microsoft.VisualStudio.Workload.WebBuildTools',
+              '--includeRecommended',
+              '--quiet',
+              '--wait',
+              '--norestart'
+            ) -Wait -PassThru
+
+            if ($process.ExitCode -ne 0 -and $process.ExitCode -ne 3010) {
+              throw "Visual Studio Installer failed with exit code $($process.ExitCode)"
+            }
+          }
+
+          if (-not (Test-Path $targets)) {
+            throw "ASP.NET Web Application targets are still missing after installing WebBuildTools: $targets"
+          }
+
+          "VSToolsPath=$vsToolsPath" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "VisualStudioVersion=$vsVersion" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          Write-Host "Using Visual Studio: $vsPath"
+          Write-Host "Using WebApplication targets: $targets"
+
+      - name: Show build environment
+        shell: pwsh
+        run: |
+          Write-Host "Runner: $env:RUNNER_OS"
+          Write-Host "VisualStudioVersion: $env:VisualStudioVersion"
+          Write-Host "VSToolsPath: $env:VSToolsPath"
+          msbuild -version
+          nuget help | Select-Object -First 2
+
+      - name: Restore NuGet packages
+        run: nuget restore Website/Roblox.Website.sln -NonInteractive -ConfigFile nuget.config
+
+      - name: Restore SDK-style project dependencies
+        run: dotnet restore Website/Roblox.Website.sln
+
+      - name: Build ASP.NET website solution
+        run: msbuild Website/Roblox.Website.sln /m /p:Configuration=Release "/p:Platform=Any CPU" /p:RestorePackagesConfig=true /verbosity:minimal
+
+      - name: Package compiled website assemblies
+        shell: pwsh
+        run: |
+          $source = Join-Path $env:GITHUB_WORKSPACE 'Website\bin'
+          $package = Join-Path $env:GITHUB_WORKSPACE 'artifacts\block16-website-bin'
+
+          if (-not (Test-Path $source -PathType Container)) {
+            throw "The website build output directory was not found: $source"
+          }
+
+          $assemblies = @(Get-ChildItem -Path $source -Filter '*.dll' -File -Recurse)
+          if ($assemblies.Count -eq 0) {
+            throw "No compiled DLL assemblies were found in: $source"
+          }
+
+          New-Item -ItemType Directory -Path $package -Force | Out-Null
+          Copy-Item -Path (Join-Path $source '*') -Destination $package -Recurse -Force
+
+          $manifest = @(
+            "BLOCK16 website build output"
+            "Commit: $env:GITHUB_SHA"
+            "Branch: $env:GITHUB_REF_NAME"
+            "Built at (UTC): $([DateTime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ'))"
+            "DLL assembly count: $($assemblies.Count)"
+            ""
+            "Files:"
+          )
+
+          $manifest += Get-ChildItem -Path $package -File -Recurse |
+            Sort-Object FullName |
+            ForEach-Object {
+              $relative = $_.FullName.Substring($package.Length).TrimStart('\')
+              "$relative | $($_.Length) bytes | $((Get-FileHash $_.FullName -Algorithm SHA256).Hash)"
+            }
+
+          $manifest | Set-Content -Path (Join-Path $package 'BUILD-MANIFEST.txt') -Encoding utf8
+          Write-Host "Packaged $($assemblies.Count) compiled DLL assemblies."
+
+      - name: Upload compiled website artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: block16-website-build-output
+          path: artifacts/block16-website-bin/
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Publish complete website staging directory
+        shell: pwsh
+        run: |
+          $publishPath = Join-Path $env:GITHUB_WORKSPACE 'artifacts\block16-website-staging'
+
+          if (Test-Path $publishPath) {
+            Remove-Item -Path $publishPath -Recurse -Force
+          }
+
+          New-Item -ItemType Directory -Path $publishPath -Force | Out-Null
+
+          & msbuild Website/Roblox.Website.csproj /m /p:Configuration=Release "/p:Platform=AnyCPU" /p:DeployOnBuild=true /p:WebPublishMethod=FileSystem "/p:PublishUrl=$publishPath" /p:DeleteExistingFiles=true /p:PrecompileBeforePublish=false "/p:VSToolsPath=$env:VSToolsPath" "/p:VisualStudioVersion=$env:VisualStudioVersion" /verbosity:minimal
+
+          if ($LASTEXITCODE -ne 0) {
+            throw "The ASP.NET website publish step failed with exit code $LASTEXITCODE"
+          }
+
+          # This legacy project generates the complete Web Application Package under
+          # obj\\Release\\Package\\PackageTmp even when PublishUrl is supplied.
+          # Stage that verified package payload as the deployable website directory.
+          $packageTmp = Join-Path $env:GITHUB_WORKSPACE 'Website\\obj\\Release\\Package\\PackageTmp'
+          if (-not (Test-Path $packageTmp -PathType Container)) {
+            throw "MSBuild completed but its complete website package payload was not found: $packageTmp"
+          }
+
+          Copy-Item -Path (Join-Path $packageTmp '*') -Destination $publishPath -Recurse -Force
+
+          $requiredFiles = @(
+            'Default.aspx',
+            'Global.asax',
+            'Web.config',
+            'bin\Roblox.Website.dll'
+          )
+
+          foreach ($relativePath in $requiredFiles) {
+            $candidate = Join-Path $publishPath $relativePath
+            if (-not (Test-Path $candidate -PathType Leaf)) {
+              throw "The staging publish output is missing required file: $relativePath"
+            }
+          }
+
+          # The environment settings file is marked as None in the legacy project,
+          # but Web.config loads it with configSource at runtime. Include it explicitly.
+          $environmentSettings = Join-Path $env:GITHUB_WORKSPACE 'Website\App_Data\Configuration\Roblox.Configuration.Properties.EnvironmentSettings.config'
+          $environmentSettingsTarget = Join-Path $publishPath 'App_Data\Configuration\Roblox.Configuration.Properties.EnvironmentSettings.config'
+          if (-not (Test-Path $environmentSettings -PathType Leaf)) {
+            throw "Required runtime configuration source is missing: $environmentSettings"
+          }
+          New-Item -ItemType Directory -Path (Split-Path $environmentSettingsTarget) -Force | Out-Null
+          Copy-Item -Path $environmentSettings -Destination $environmentSettingsTarget -Force
+
+          # Remove debug symbols from the staging package; they are not required to run the site.
+          Get-ChildItem -Path $publishPath -Filter '*.pdb' -File -Recurse | Remove-Item -Force
+
+          $siteSettingsPath = Join-Path $publishPath 'App_Data\Configuration\site-settings.json'
+          if (Test-Path $siteSettingsPath -PathType Leaf) {
+            $siteSettings = Get-Content -Path $siteSettingsPath -Raw | ConvertFrom-Json
+            if ($siteSettings.Installer.ClientInstallHost -eq 'localhost') {
+              Write-Warning 'ClientInstallHost is still localhost. Update this setting to the public client download host before staging tests on another device.'
+            }
+          }
+
+          $readme = @'
+          BLOCK16 WEBSITE STAGING PACKAGE
+
+          This package contains the published ASP.NET Web Forms website and its compiled application assemblies.
+
+          HOSTING REQUIREMENTS
+          - Windows Server with IIS.
+          - ASP.NET Framework 4.7.2 / .NET Framework CLR v4.0.
+          - IIS application pool using the Integrated pipeline.
+          - HTTPS configured before enabling authentication cookies.
+
+          BEFORE RUNNING
+          1. Review Web.config and every file under App_Data/Configuration and App_Data/config.
+          2. Configure only services, databases, and credentials that you own and have permission to use.
+          3. Replace localhost in App_Data/Configuration/site-settings.json with the intended public client-install host.
+          4. Review environment-specific domains and identifiers in Roblox.Configuration.Properties.EnvironmentSettings.config.
+          5. Confirm required database and service dependencies are available. This package does not provision them.
+          6. Keep account registration disabled until the legacy authentication and password-storage design has been replaced and reviewed.
+          7. Test privately before exposing the application to the public internet.
+
+          SAFETY / SCOPE
+          - This is a staging package, not a production deployment.
+          - No secrets should be added to source control or this artifact.
+          - The package does not include a database, external services, IIS configuration, or production credentials.
+          - Build success confirms compilation and packaging only; it does not prove the website starts or that every route works.
+          '@
+          $readme | Set-Content -Path (Join-Path $publishPath 'STAGING-README.txt') -Encoding utf8
+
+          $files = @(Get-ChildItem -Path $publishPath -File -Recurse | Sort-Object FullName)
+          if ($files.Count -lt 10) {
+            throw "Staging package looks incomplete: only $($files.Count) files were published."
+          }
+
+          $manifest = @(
+            'BLOCK16 complete website staging package'
+            "Commit: $env:GITHUB_SHA"
+            "Branch: $env:GITHUB_REF_NAME"
+            "Built at (UTC): $([DateTime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ'))"
+            "File count: $($files.Count)"
+            "PDB files: 0"
+            ''
+            'Files (relative path | bytes | SHA-256):'
+          )
+
+          $manifest += $files | ForEach-Object {
+            $relative = $_.FullName.Substring($publishPath.Length).TrimStart('\')
+            "$relative | $($_.Length) | $((Get-FileHash $_.FullName -Algorithm SHA256).Hash)"
+          }
+
+          $manifest | Set-Content -Path (Join-Path $publishPath 'STAGING-MANIFEST.txt') -Encoding utf8
+          Write-Host "Validated complete staging directory with $($files.Count) files."
+
+      - name: Upload complete website staging artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: block16-complete-website-staging
+          path: artifacts/block16-website-staging/
+          if-no-files-found: error
+          retention-days: 7
+) {
+              throw "Staging safety check failed: $name must use a reserved .invalid placeholder until an owned endpoint is configured."
+            }
+          }
+
+          if ($siteSettings.Installer.ClientInstallHost -notmatch '\.invalid        uses: microsoft/setup-msbuild@v2
+
+      - name: Add NuGet
+        uses: NuGet/setup-nuget@v2
+
+      - name: Install and locate ASP.NET Web Application build tools
+        shell: pwsh
+        run: |
+          $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe'
+          $vsPath = & $vswhere -latest -products '*' -requires Microsoft.Component.MSBuild -property installationPath
+          if (-not $vsPath -or -not (Test-Path $vsPath)) {
+            throw 'A Visual Studio installation with MSBuild was not found on this runner.'
+          }
+
+          $msbuildExe = Join-Path $vsPath 'MSBuild\Current\Bin\MSBuild.exe'
+          if (-not (Test-Path $msbuildExe)) {
+            throw "MSBuild was not found under the selected Visual Studio installation: $vsPath"
+          }
+
+          $msbuildVersion = (Get-Item $msbuildExe).VersionInfo.ProductVersion
+          $vsVersion = "$(([int]($msbuildVersion.Split('.')[0])).ToString()).0"
+          $vsToolsPath = Join-Path $vsPath "MSBuild\Microsoft\VisualStudio\v$vsVersion"
+          $targets = Join-Path $vsToolsPath 'WebApplications\Microsoft.WebApplication.targets'
+
+          if (-not (Test-Path $targets)) {
+            $installer = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vs_installer.exe'
+            if (-not (Test-Path $installer)) {
+              throw "Visual Studio Installer was not found; cannot add WebBuildTools to $vsPath"
+            }
+
+            Write-Host "Installing Microsoft.VisualStudio.Workload.WebBuildTools into $vsPath"
+            $process = Start-Process -FilePath $installer -ArgumentList @(
+              'modify',
+              '--installPath', $vsPath,
+              '--add', 'Microsoft.VisualStudio.Workload.WebBuildTools',
+              '--includeRecommended',
+              '--quiet',
+              '--wait',
+              '--norestart'
+            ) -Wait -PassThru
+
+            if ($process.ExitCode -ne 0 -and $process.ExitCode -ne 3010) {
+              throw "Visual Studio Installer failed with exit code $($process.ExitCode)"
+            }
+          }
+
+          if (-not (Test-Path $targets)) {
+            throw "ASP.NET Web Application targets are still missing after installing WebBuildTools: $targets"
+          }
+
+          "VSToolsPath=$vsToolsPath" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "VisualStudioVersion=$vsVersion" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          Write-Host "Using Visual Studio: $vsPath"
+          Write-Host "Using WebApplication targets: $targets"
+
+      - name: Show build environment
+        shell: pwsh
+        run: |
+          Write-Host "Runner: $env:RUNNER_OS"
+          Write-Host "VisualStudioVersion: $env:VisualStudioVersion"
+          Write-Host "VSToolsPath: $env:VSToolsPath"
+          msbuild -version
+          nuget help | Select-Object -First 2
+
+      - name: Restore NuGet packages
+        run: nuget restore Website/Roblox.Website.sln -NonInteractive -ConfigFile nuget.config
+
+      - name: Restore SDK-style project dependencies
+        run: dotnet restore Website/Roblox.Website.sln
+
+      - name: Build ASP.NET website solution
+        run: msbuild Website/Roblox.Website.sln /m /p:Configuration=Release "/p:Platform=Any CPU" /p:RestorePackagesConfig=true /verbosity:minimal
+
+      - name: Package compiled website assemblies
+        shell: pwsh
+        run: |
+          $source = Join-Path $env:GITHUB_WORKSPACE 'Website\bin'
+          $package = Join-Path $env:GITHUB_WORKSPACE 'artifacts\block16-website-bin'
+
+          if (-not (Test-Path $source -PathType Container)) {
+            throw "The website build output directory was not found: $source"
+          }
+
+          $assemblies = @(Get-ChildItem -Path $source -Filter '*.dll' -File -Recurse)
+          if ($assemblies.Count -eq 0) {
+            throw "No compiled DLL assemblies were found in: $source"
+          }
+
+          New-Item -ItemType Directory -Path $package -Force | Out-Null
+          Copy-Item -Path (Join-Path $source '*') -Destination $package -Recurse -Force
+
+          $manifest = @(
+            "BLOCK16 website build output"
+            "Commit: $env:GITHUB_SHA"
+            "Branch: $env:GITHUB_REF_NAME"
+            "Built at (UTC): $([DateTime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ'))"
+            "DLL assembly count: $($assemblies.Count)"
+            ""
+            "Files:"
+          )
+
+          $manifest += Get-ChildItem -Path $package -File -Recurse |
+            Sort-Object FullName |
+            ForEach-Object {
+              $relative = $_.FullName.Substring($package.Length).TrimStart('\')
+              "$relative | $($_.Length) bytes | $((Get-FileHash $_.FullName -Algorithm SHA256).Hash)"
+            }
+
+          $manifest | Set-Content -Path (Join-Path $package 'BUILD-MANIFEST.txt') -Encoding utf8
+          Write-Host "Packaged $($assemblies.Count) compiled DLL assemblies."
+
+      - name: Upload compiled website artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: block16-website-build-output
+          path: artifacts/block16-website-bin/
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Publish complete website staging directory
+        shell: pwsh
+        run: |
+          $publishPath = Join-Path $env:GITHUB_WORKSPACE 'artifacts\block16-website-staging'
+
+          if (Test-Path $publishPath) {
+            Remove-Item -Path $publishPath -Recurse -Force
+          }
+
+          New-Item -ItemType Directory -Path $publishPath -Force | Out-Null
+
+          & msbuild Website/Roblox.Website.csproj /m /p:Configuration=Release "/p:Platform=AnyCPU" /p:DeployOnBuild=true /p:WebPublishMethod=FileSystem "/p:PublishUrl=$publishPath" /p:DeleteExistingFiles=true /p:PrecompileBeforePublish=false "/p:VSToolsPath=$env:VSToolsPath" "/p:VisualStudioVersion=$env:VisualStudioVersion" /verbosity:minimal
+
+          if ($LASTEXITCODE -ne 0) {
+            throw "The ASP.NET website publish step failed with exit code $LASTEXITCODE"
+          }
+
+          # This legacy project generates the complete Web Application Package under
+          # obj\\Release\\Package\\PackageTmp even when PublishUrl is supplied.
+          # Stage that verified package payload as the deployable website directory.
+          $packageTmp = Join-Path $env:GITHUB_WORKSPACE 'Website\\obj\\Release\\Package\\PackageTmp'
+          if (-not (Test-Path $packageTmp -PathType Container)) {
+            throw "MSBuild completed but its complete website package payload was not found: $packageTmp"
+          }
+
+          Copy-Item -Path (Join-Path $packageTmp '*') -Destination $publishPath -Recurse -Force
+
+          $requiredFiles = @(
+            'Default.aspx',
+            'Global.asax',
+            'Web.config',
+            'bin\Roblox.Website.dll'
+          )
+
+          foreach ($relativePath in $requiredFiles) {
+            $candidate = Join-Path $publishPath $relativePath
+            if (-not (Test-Path $candidate -PathType Leaf)) {
+              throw "The staging publish output is missing required file: $relativePath"
+            }
+          }
+
+          # The environment settings file is marked as None in the legacy project,
+          # but Web.config loads it with configSource at runtime. Include it explicitly.
+          $environmentSettings = Join-Path $env:GITHUB_WORKSPACE 'Website\App_Data\Configuration\Roblox.Configuration.Properties.EnvironmentSettings.config'
+          $environmentSettingsTarget = Join-Path $publishPath 'App_Data\Configuration\Roblox.Configuration.Properties.EnvironmentSettings.config'
+          if (-not (Test-Path $environmentSettings -PathType Leaf)) {
+            throw "Required runtime configuration source is missing: $environmentSettings"
+          }
+          New-Item -ItemType Directory -Path (Split-Path $environmentSettingsTarget) -Force | Out-Null
+          Copy-Item -Path $environmentSettings -Destination $environmentSettingsTarget -Force
+
+          # Remove debug symbols from the staging package; they are not required to run the site.
+          Get-ChildItem -Path $publishPath -Filter '*.pdb' -File -Recurse | Remove-Item -Force
+
+          $siteSettingsPath = Join-Path $publishPath 'App_Data\Configuration\site-settings.json'
+          if (Test-Path $siteSettingsPath -PathType Leaf) {
+            $siteSettings = Get-Content -Path $siteSettingsPath -Raw | ConvertFrom-Json
+            if ($siteSettings.Installer.ClientInstallHost -eq 'localhost') {
+              Write-Warning 'ClientInstallHost is still localhost. Update this setting to the public client download host before staging tests on another device.'
+            }
+          }
+
+          $readme = @'
+          BLOCK16 WEBSITE STAGING PACKAGE
+
+          This package contains the published ASP.NET Web Forms website and its compiled application assemblies.
+
+          HOSTING REQUIREMENTS
+          - Windows Server with IIS.
+          - ASP.NET Framework 4.7.2 / .NET Framework CLR v4.0.
+          - IIS application pool using the Integrated pipeline.
+          - HTTPS configured before enabling authentication cookies.
+
+          BEFORE RUNNING
+          1. Review Web.config and every file under App_Data/Configuration and App_Data/config.
+          2. Configure only services, databases, and credentials that you own and have permission to use.
+          3. Replace localhost in App_Data/Configuration/site-settings.json with the intended public client-install host.
+          4. Review environment-specific domains and identifiers in Roblox.Configuration.Properties.EnvironmentSettings.config.
+          5. Confirm required database and service dependencies are available. This package does not provision them.
+          6. Keep account registration disabled until the legacy authentication and password-storage design has been replaced and reviewed.
+          7. Test privately before exposing the application to the public internet.
+
+          SAFETY / SCOPE
+          - This is a staging package, not a production deployment.
+          - No secrets should be added to source control or this artifact.
+          - The package does not include a database, external services, IIS configuration, or production credentials.
+          - Build success confirms compilation and packaging only; it does not prove the website starts or that every route works.
+          '@
+          $readme | Set-Content -Path (Join-Path $publishPath 'STAGING-README.txt') -Encoding utf8
+
+          $files = @(Get-ChildItem -Path $publishPath -File -Recurse | Sort-Object FullName)
+          if ($files.Count -lt 10) {
+            throw "Staging package looks incomplete: only $($files.Count) files were published."
+          }
+
+          $manifest = @(
+            'BLOCK16 complete website staging package'
+            "Commit: $env:GITHUB_SHA"
+            "Branch: $env:GITHUB_REF_NAME"
+            "Built at (UTC): $([DateTime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ'))"
+            "File count: $($files.Count)"
+            "PDB files: 0"
+            ''
+            'Files (relative path | bytes | SHA-256):'
+          )
+
+          $manifest += $files | ForEach-Object {
+            $relative = $_.FullName.Substring($publishPath.Length).TrimStart('\')
+            "$relative | $($_.Length) | $((Get-FileHash $_.FullName -Algorithm SHA256).Hash)"
+          }
+
+          $manifest | Set-Content -Path (Join-Path $publishPath 'STAGING-MANIFEST.txt') -Encoding utf8
+          Write-Host "Validated complete staging directory with $($files.Count) files."
+
+      - name: Upload complete website staging artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: block16-complete-website-staging
+          path: artifacts/block16-website-staging/
+          if-no-files-found: error
+          retention-days: 7
+) {
+            throw 'Staging safety check failed: ClientInstallHost must use a reserved .invalid placeholder.'
+          }
+
+          $enabledGameFeatures = @($gameLaunch.Roblox.WebsiteSettings.Properties.GameLaunch.setting |
+            Where-Object { $_.value -match '^(?i:true)        uses: microsoft/setup-msbuild@v2
+
+      - name: Add NuGet
+        uses: NuGet/setup-nuget@v2
+
+      - name: Install and locate ASP.NET Web Application build tools
+        shell: pwsh
+        run: |
+          $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe'
+          $vsPath = & $vswhere -latest -products '*' -requires Microsoft.Component.MSBuild -property installationPath
+          if (-not $vsPath -or -not (Test-Path $vsPath)) {
+            throw 'A Visual Studio installation with MSBuild was not found on this runner.'
+          }
+
+          $msbuildExe = Join-Path $vsPath 'MSBuild\Current\Bin\MSBuild.exe'
+          if (-not (Test-Path $msbuildExe)) {
+            throw "MSBuild was not found under the selected Visual Studio installation: $vsPath"
+          }
+
+          $msbuildVersion = (Get-Item $msbuildExe).VersionInfo.ProductVersion
+          $vsVersion = "$(([int]($msbuildVersion.Split('.')[0])).ToString()).0"
+          $vsToolsPath = Join-Path $vsPath "MSBuild\Microsoft\VisualStudio\v$vsVersion"
+          $targets = Join-Path $vsToolsPath 'WebApplications\Microsoft.WebApplication.targets'
+
+          if (-not (Test-Path $targets)) {
+            $installer = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vs_installer.exe'
+            if (-not (Test-Path $installer)) {
+              throw "Visual Studio Installer was not found; cannot add WebBuildTools to $vsPath"
+            }
+
+            Write-Host "Installing Microsoft.VisualStudio.Workload.WebBuildTools into $vsPath"
+            $process = Start-Process -FilePath $installer -ArgumentList @(
+              'modify',
+              '--installPath', $vsPath,
+              '--add', 'Microsoft.VisualStudio.Workload.WebBuildTools',
+              '--includeRecommended',
+              '--quiet',
+              '--wait',
+              '--norestart'
+            ) -Wait -PassThru
+
+            if ($process.ExitCode -ne 0 -and $process.ExitCode -ne 3010) {
+              throw "Visual Studio Installer failed with exit code $($process.ExitCode)"
+            }
+          }
+
+          if (-not (Test-Path $targets)) {
+            throw "ASP.NET Web Application targets are still missing after installing WebBuildTools: $targets"
+          }
+
+          "VSToolsPath=$vsToolsPath" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "VisualStudioVersion=$vsVersion" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          Write-Host "Using Visual Studio: $vsPath"
+          Write-Host "Using WebApplication targets: $targets"
+
+      - name: Show build environment
+        shell: pwsh
+        run: |
+          Write-Host "Runner: $env:RUNNER_OS"
+          Write-Host "VisualStudioVersion: $env:VisualStudioVersion"
+          Write-Host "VSToolsPath: $env:VSToolsPath"
+          msbuild -version
+          nuget help | Select-Object -First 2
+
+      - name: Restore NuGet packages
+        run: nuget restore Website/Roblox.Website.sln -NonInteractive -ConfigFile nuget.config
+
+      - name: Restore SDK-style project dependencies
+        run: dotnet restore Website/Roblox.Website.sln
+
+      - name: Build ASP.NET website solution
+        run: msbuild Website/Roblox.Website.sln /m /p:Configuration=Release "/p:Platform=Any CPU" /p:RestorePackagesConfig=true /verbosity:minimal
+
+      - name: Package compiled website assemblies
+        shell: pwsh
+        run: |
+          $source = Join-Path $env:GITHUB_WORKSPACE 'Website\bin'
+          $package = Join-Path $env:GITHUB_WORKSPACE 'artifacts\block16-website-bin'
+
+          if (-not (Test-Path $source -PathType Container)) {
+            throw "The website build output directory was not found: $source"
+          }
+
+          $assemblies = @(Get-ChildItem -Path $source -Filter '*.dll' -File -Recurse)
+          if ($assemblies.Count -eq 0) {
+            throw "No compiled DLL assemblies were found in: $source"
+          }
+
+          New-Item -ItemType Directory -Path $package -Force | Out-Null
+          Copy-Item -Path (Join-Path $source '*') -Destination $package -Recurse -Force
+
+          $manifest = @(
+            "BLOCK16 website build output"
+            "Commit: $env:GITHUB_SHA"
+            "Branch: $env:GITHUB_REF_NAME"
+            "Built at (UTC): $([DateTime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ'))"
+            "DLL assembly count: $($assemblies.Count)"
+            ""
+            "Files:"
+          )
+
+          $manifest += Get-ChildItem -Path $package -File -Recurse |
+            Sort-Object FullName |
+            ForEach-Object {
+              $relative = $_.FullName.Substring($package.Length).TrimStart('\')
+              "$relative | $($_.Length) bytes | $((Get-FileHash $_.FullName -Algorithm SHA256).Hash)"
+            }
+
+          $manifest | Set-Content -Path (Join-Path $package 'BUILD-MANIFEST.txt') -Encoding utf8
+          Write-Host "Packaged $($assemblies.Count) compiled DLL assemblies."
+
+      - name: Upload compiled website artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: block16-website-build-output
+          path: artifacts/block16-website-bin/
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Publish complete website staging directory
+        shell: pwsh
+        run: |
+          $publishPath = Join-Path $env:GITHUB_WORKSPACE 'artifacts\block16-website-staging'
+
+          if (Test-Path $publishPath) {
+            Remove-Item -Path $publishPath -Recurse -Force
+          }
+
+          New-Item -ItemType Directory -Path $publishPath -Force | Out-Null
+
+          & msbuild Website/Roblox.Website.csproj /m /p:Configuration=Release "/p:Platform=AnyCPU" /p:DeployOnBuild=true /p:WebPublishMethod=FileSystem "/p:PublishUrl=$publishPath" /p:DeleteExistingFiles=true /p:PrecompileBeforePublish=false "/p:VSToolsPath=$env:VSToolsPath" "/p:VisualStudioVersion=$env:VisualStudioVersion" /verbosity:minimal
+
+          if ($LASTEXITCODE -ne 0) {
+            throw "The ASP.NET website publish step failed with exit code $LASTEXITCODE"
+          }
+
+          # This legacy project generates the complete Web Application Package under
+          # obj\\Release\\Package\\PackageTmp even when PublishUrl is supplied.
+          # Stage that verified package payload as the deployable website directory.
+          $packageTmp = Join-Path $env:GITHUB_WORKSPACE 'Website\\obj\\Release\\Package\\PackageTmp'
+          if (-not (Test-Path $packageTmp -PathType Container)) {
+            throw "MSBuild completed but its complete website package payload was not found: $packageTmp"
+          }
+
+          Copy-Item -Path (Join-Path $packageTmp '*') -Destination $publishPath -Recurse -Force
+
+          $requiredFiles = @(
+            'Default.aspx',
+            'Global.asax',
+            'Web.config',
+            'bin\Roblox.Website.dll'
+          )
+
+          foreach ($relativePath in $requiredFiles) {
+            $candidate = Join-Path $publishPath $relativePath
+            if (-not (Test-Path $candidate -PathType Leaf)) {
+              throw "The staging publish output is missing required file: $relativePath"
+            }
+          }
+
+          # The environment settings file is marked as None in the legacy project,
+          # but Web.config loads it with configSource at runtime. Include it explicitly.
+          $environmentSettings = Join-Path $env:GITHUB_WORKSPACE 'Website\App_Data\Configuration\Roblox.Configuration.Properties.EnvironmentSettings.config'
+          $environmentSettingsTarget = Join-Path $publishPath 'App_Data\Configuration\Roblox.Configuration.Properties.EnvironmentSettings.config'
+          if (-not (Test-Path $environmentSettings -PathType Leaf)) {
+            throw "Required runtime configuration source is missing: $environmentSettings"
+          }
+          New-Item -ItemType Directory -Path (Split-Path $environmentSettingsTarget) -Force | Out-Null
+          Copy-Item -Path $environmentSettings -Destination $environmentSettingsTarget -Force
+
+          # Remove debug symbols from the staging package; they are not required to run the site.
+          Get-ChildItem -Path $publishPath -Filter '*.pdb' -File -Recurse | Remove-Item -Force
+
+          $siteSettingsPath = Join-Path $publishPath 'App_Data\Configuration\site-settings.json'
+          if (Test-Path $siteSettingsPath -PathType Leaf) {
+            $siteSettings = Get-Content -Path $siteSettingsPath -Raw | ConvertFrom-Json
+            if ($siteSettings.Installer.ClientInstallHost -eq 'localhost') {
+              Write-Warning 'ClientInstallHost is still localhost. Update this setting to the public client download host before staging tests on another device.'
+            }
+          }
+
+          $readme = @'
+          BLOCK16 WEBSITE STAGING PACKAGE
+
+          This package contains the published ASP.NET Web Forms website and its compiled application assemblies.
+
+          HOSTING REQUIREMENTS
+          - Windows Server with IIS.
+          - ASP.NET Framework 4.7.2 / .NET Framework CLR v4.0.
+          - IIS application pool using the Integrated pipeline.
+          - HTTPS configured before enabling authentication cookies.
+
+          BEFORE RUNNING
+          1. Review Web.config and every file under App_Data/Configuration and App_Data/config.
+          2. Configure only services, databases, and credentials that you own and have permission to use.
+          3. Replace localhost in App_Data/Configuration/site-settings.json with the intended public client-install host.
+          4. Review environment-specific domains and identifiers in Roblox.Configuration.Properties.EnvironmentSettings.config.
+          5. Confirm required database and service dependencies are available. This package does not provision them.
+          6. Keep account registration disabled until the legacy authentication and password-storage design has been replaced and reviewed.
+          7. Test privately before exposing the application to the public internet.
+
+          SAFETY / SCOPE
+          - This is a staging package, not a production deployment.
+          - No secrets should be added to source control or this artifact.
+          - The package does not include a database, external services, IIS configuration, or production credentials.
+          - Build success confirms compilation and packaging only; it does not prove the website starts or that every route works.
+          '@
+          $readme | Set-Content -Path (Join-Path $publishPath 'STAGING-README.txt') -Encoding utf8
+
+          $files = @(Get-ChildItem -Path $publishPath -File -Recurse | Sort-Object FullName)
+          if ($files.Count -lt 10) {
+            throw "Staging package looks incomplete: only $($files.Count) files were published."
+          }
+
+          $manifest = @(
+            'BLOCK16 complete website staging package'
+            "Commit: $env:GITHUB_SHA"
+            "Branch: $env:GITHUB_REF_NAME"
+            "Built at (UTC): $([DateTime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ'))"
+            "File count: $($files.Count)"
+            "PDB files: 0"
+            ''
+            'Files (relative path | bytes | SHA-256):'
+          )
+
+          $manifest += $files | ForEach-Object {
+            $relative = $_.FullName.Substring($publishPath.Length).TrimStart('\')
+            "$relative | $($_.Length) | $((Get-FileHash $_.FullName -Algorithm SHA256).Hash)"
+          }
+
+          $manifest | Set-Content -Path (Join-Path $publishPath 'STAGING-MANIFEST.txt') -Encoding utf8
+          Write-Host "Validated complete staging directory with $($files.Count) files."
+
+      - name: Upload complete website staging artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: block16-complete-website-staging
+          path: artifacts/block16-website-staging/
+          if-no-files-found: error
+          retention-days: 7
+ })
+          if ($enabledGameFeatures.Count -gt 0) {
+            throw 'Staging safety check failed: every legacy game-join feature must remain disabled.'
+          }
+
+          if ($machineKey.machineKey.validationKey -ne 'AutoGenerate,IsolateApps' -or
+              $machineKey.machineKey.decryptionKey -ne 'AutoGenerate,IsolateApps') {
+            throw 'Staging safety check failed: tracked machine-key values must not contain fixed keys.'
+          }
+
+          $adminRule = Select-String -Path 'Website/Web.config' -Pattern '<location path="Admi">[\s\S]*?<deny users="\*"'
+          if (-not $adminRule) {
+            throw 'Staging safety check failed: the legacy admin path must remain explicitly denied.'
+          }
+
+          Write-Host 'Staging safety defaults validated.'
+          
       - name: Add Visual Studio MSBuild
         uses: microsoft/setup-msbuild@v2
 
