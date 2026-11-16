@@ -191,7 +191,7 @@ test("confirmation rejects invalid or unverified tokens without setting cookies"
   try {
     const response = await worker.fetch(new Request("https://block16.test/api/v1/auth/confirm", {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: { "content-type": "application/json", origin: "https://block16.test", "sec-fetch-site": "same-origin" },
       body: JSON.stringify({ access_token: "access-token-value-long-enough", refresh_token: "refresh-token-value" }),
     }), env);
     assert.equal(response.status, 401);
