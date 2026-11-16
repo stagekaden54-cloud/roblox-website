@@ -199,3 +199,38 @@ test("confirmation rejects invalid or unverified tokens without setting cookies"
     assert.equal((await response.json()).error.code, "EMAIL_NOT_CONFIRMED");
   } finally { globalThis.fetch = originalFetch; }
 });
+
+
+test("published games endpoint reads from D1 when a D1 binding is available", async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => { throw new Error("Supabase database should not be called for D1 games"); };
+  const statements = [];
+  const rows = [{ id: "d1-game", slug: "crossroads", title: "Crossroads", status: "published" }];
+  const DB = {
+    prepare(sql) {
+      statements.push(sql);
+      return {
+        bind(...values) {
+          return {
+            first: async () => rows[0],
+            all: async () => ({ results: rows }),
+            run: async () => ({ success: true }),
+            values,
+          };
+        },
+      };
+    },
+  };
+  try {
+    const response = await worker.fetch(
+      new Request("https://block16.test/api/v1/games"),
+      { ...env, DB },
+    );
+    assert.equal(response.status, 200);
+    assert.deepEqual(await response.json(), { games: rows });
+    assert.match(statements[0], /FROM games WHERE status = 'published'/);
+    assert.match(statements[0], /ORDER BY created_at DESC LIMIT 50/);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
