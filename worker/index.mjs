@@ -148,6 +148,12 @@ async function handleAuth(request, env, path) {
   }
 
   if (path === "/api/v1/auth/confirm" && request.method === "POST") {
+    const requestOrigin = request.headers.get("origin");
+    const fetchSite = request.headers.get("sec-fetch-site");
+    if (!requestOrigin || requestOrigin !== new URL(request.url).origin
+      || (fetchSite && fetchSite !== "same-origin" && fetchSite !== "none")) {
+      return apiError("Confirmation requests must come from this BLOCK16 page.", 403, "CROSS_SITE_REQUEST");
+    }
     let body;
     try { body = await readJson(request, 8_192); } catch (error) {
       return error.message === "REQUEST_TOO_LARGE"
