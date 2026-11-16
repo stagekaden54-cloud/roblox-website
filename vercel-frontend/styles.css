@@ -31,7 +31,7 @@ body{background:#dce8f4 url("https://raw.githubusercontent.com/stagekaden54-clou
 
 
 /* Static adaptation of the legacy MenuRedesign navigation structure. */
-#header{max-width:none;width:100%;min-height:36px;height:auto;margin:0;padding:0;background:#114081 url("https://raw.githubusercontent.com/stagekaden54-cloud/roblox-website/block16-rebrand/Website/Images/RevisedHeader/bg-block16-header.png") repeat-x top left;position:relative;z-index:20}
+#header{max-width:none;width:100%;min-height:36px;height:auto;margin:0;padding:0;background:linear-gradient(to bottom,#1b5796 0%,#114081 100%);position:relative;z-index:20}
 .legacy-header-inner{max-width:990px;min-height:36px;margin:0 auto;display:flex;align-items:center;gap:4px;padding:0 8px;box-sizing:border-box}
 #logo{display:flex;flex:0 0 116px;width:116px;height:35px;margin:0;align-items:center}
 #logo img{display:block;width:116px;height:35px;object-fit:contain}
