@@ -102,7 +102,7 @@ test('Catalog navigation is linked from the homepage and Games page', async ({ p
   for (const path of ['/', '/games.html', '/catalog.html']) {
     await page.goto(path);
     await page.getByRole('link', { name: 'Catalog' }).click();
-    await expect(page).toHaveURL(/\\/catalog\\.html$/);
+    await expect(page).toHaveURL(/\/catalog\.html$/);
     await expect(page).toHaveTitle('BLOCK16 — Catalog');
   }
 });
