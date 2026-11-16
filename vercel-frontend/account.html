@@ -1,4 +1,148 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>BLOCK16 — Account</title><link rel="stylesheet" href="/styles.css"><style>
 main{max-width:900px;width:calc(100% - 24px);margin:22px auto}.banner{height:110px;position:relative;overflow:hidden}.banner img{width:100%;height:100%;object-fit:cover}.banner div{position:absolute;inset:0;padding:14px 24px;color:white;text-shadow:0 2px 3px #39230d}.layout{display:grid;grid-template-columns:1.2fr .8fr;gap:15px;margin-top:15px}.card,.side{padding:20px;background:#f4f7fb;border:1px solid #b7c9dc;min-width:0}.tabs{display:flex;border-bottom:1px solid #c2d0df;margin-bottom:16px}.tabs button{padding:9px 18px;border:0;background:transparent;color:#315d87;font-weight:bold}.tabs button.active{background:white;border:1px solid #c2d0df;border-bottom:0}.card h2{color:#244d78;font-size:21px}.card label{display:block;margin:12px 0 5px;color:#294d70;font-weight:bold;font-size:13px}.card input,.card textarea{box-sizing:border-box;width:100%;padding:10px;border:1px solid #9fb2c7;border-radius:3px;font:14px Arial}.submit,.secondary{width:100%;padding:12px;margin-top:17px;border:1px solid #16477b;border-radius:3px;background:linear-gradient(#4d91cc,#1e5c9a);color:white;font-weight:bold}.secondary{background:#637587}.notice{padding:10px;margin:0 0 12px;background:#eaf2fa;border:1px solid #b5c9dc;color:#244d78;font-size:13px}.error{background:#fff0f0;color:#8b2929}.side{position:relative;overflow:hidden;background:#dbe8f4}.side img.bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.5}.copy{position:relative;background:#ffffffdf;padding:16px;color:#315779}.progress{position:relative;display:block;max-width:100%;margin:35px auto 0}small{color:#627b93}[hidden]{display:none!important}@media(max-width:650px){.layout{grid-template-columns:1fr}.card,.side{padding:15px}.progress{margin-top:12px}}
 </style></head><body><header id="header"><div class="legacy-header-inner"><a id="logo" href="/" aria-label="BLOCK16 home"><img src="/assets/block16-logo.svg" alt="BLOCK16"></a><nav class="legacy-navigation"><ul class="legacy-navigation-list"><li><a href="/">Home</a></li><li><a href="/games.html">Games</a></li><li><a href="/catalog.html">Catalog</a></li><li><a href="/membership.html">Membership</a></li></ul></nav></div></header><main><div class="banner"><img src="/assets/signup/wood-banner.png" alt=""><div><h1>Join BLOCK16</h1>Build, play, and make friends.</div></div><div class="layout"><section class="card"><div class="tabs"><button id="signupTab" class="active" type="button">Sign up</button><button id="loginTab" type="button">Log in</button></div><div id="notice" class="notice" role="status" hidden></div><form id="signup"><h2>Create your account</h2><label>Username</label><input id="username" minlength="3" maxlength="20" pattern="[A-Za-z0-9_]{3,20}" required><small>3–20 letters, numbers, or underscores.</small><label>Display name (optional)</label><input id="displayName" maxlength="40"><label>Email address</label><input id="email" type="email" required><label>Password</label><input id="password" type="password" minlength="8" maxlength="128" required><button class="submit">Create account</button></form><form id="login" hidden><h2>Welcome back</h2><label>Email address</label><input id="loginEmail" type="email" required><label>Password</label><input id="loginPassword" type="password" required><button class="submit">Log in</button></form><section id="profile" hidden><h2>Your BLOCK16 profile</h2><p id="profileEmail"></p><label>Username</label><input id="profileUsername" disabled><label>Display name</label><input id="profileName" maxlength="40"><label>About me</label><textarea id="bio" rows="4" maxlength="160"></textarea><small>Up to 160 characters.</small><button id="save" class="submit" type="button">Save profile</button><button id="logout" class="secondary" type="button">Log out</button></section></section><aside class="side"><img class="bg" src="/assets/signup/signup-background.jpg" alt=""><div class="copy"><h2>Your next adventure starts here.</h2><p>Find games, meet creators, and make your mark on BLOCK16.</p></div><img class="progress" src="/assets/signup/progress.gif" alt=""></aside></div></main><footer id="footer">BLOCK16 — independent classic-era revival project.</footer>
-<script>(()=>{const $=id=>document.getElementById(id),n=$('notice'),s=$('signup'),l=$('login'),p=$('profile');function msg(t,e=false){n.textContent=t;n.hidden=!t;n.classList.toggle('error',e)}async function api(path,o={}){const r=await fetch(path,{...o,credentials:'same-origin',headers:{'content-type':'application/json',...(o.headers||{})}}),d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.error?.message||'Please try again.');return d}function mode(m){s.hidden=m!=='signup';l.hidden=m!=='login';p.hidden=true;$('signupTab').classList.toggle('active',m==='signup');$('loginTab').classList.toggle('active',m==='login');msg('')}async function profile(){const d=await api('/api/v1/me');s.hidden=l.hidden=true;p.hidden=false;$('signupTab').hidden=$('loginTab').hidden=true;$('profileEmail').textContent=d.user.email||'';$('profileUsername').value=d.profile?.username||'';$('profileName').value=d.profile?.display_name||'';$('bio').value=d.profile?.bio||'';msg('You are signed in.')}$('signupTab').onclick=()=>mode('signup');$('loginTab').onclick=()=>mode('login');s.onsubmit=async e=>{e.preventDefault();try{const d=await api('/api/v1/auth/register',{method:'POST',body:JSON.stringify({username:$('username').value.trim(),display_name:$('displayName').value.trim()||$('username').value.trim(),email:$('email').value.trim(),password:$('password').value})});s.reset();if(d.email_confirmation_required){mode('login');msg('Check your email for a confirmation link, then log in.')}else await profile()}catch(x){msg(x.message,true)}};l.onsubmit=async e=>{e.preventDefault();try{await api('/api/v1/auth/login',{method:'POST',body:JSON.stringify({email:$('loginEmail').value.trim(),password:$('loginPassword').value})});l.reset();await profile()}catch(x){msg(x.message,true)}};$('save').onclick=async()=>{try{await api('/api/v1/me',{method:'PATCH',body:JSON.stringify({display_name:$('profileName').value.trim(),bio:$('bio').value})});msg('Profile saved.')}catch(x){msg(x.message,true)}};$('logout').onclick=async()=>{try{await api('/api/v1/auth/logout',{method:'POST',body:'{}'});$('signupTab').hidden=$('loginTab').hidden=false;mode('login');msg('You have been logged out.')}catch(x){msg(x.message,true)}};mode('signup');profile().catch(()=>{})})();</script></body></html>
+<script>
+(()=> {
+  const $ = id => document.getElementById(id);
+  const n = $('notice'), s = $('signup'), l = $('login'), p = $('profile');
+  function msg(t, e = false) {
+    n.textContent = t;
+    n.hidden = !t;
+    n.classList.toggle('error', e);
+  }
+  async function api(path, options = {}) {
+    const response = await fetch(path, {
+      ...options,
+      credentials: 'same-origin',
+      headers: { 'content-type': 'application/json', ...(options.headers || {}) }
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw Error(data.error?.message || 'Please try again.');
+    return data;
+  }
+  function mode(m) {
+    s.hidden = m !== 'signup';
+    l.hidden = m !== 'login';
+    p.hidden = true;
+    $('signupTab').classList.toggle('active', m === 'signup');
+    $('loginTab').classList.toggle('active', m === 'login');
+    msg('');
+  }
+  async function profile() {
+    const data = await api('/api/v1/me');
+    s.hidden = l.hidden = true;
+    p.hidden = false;
+    $('signupTab').hidden = $('loginTab').hidden = true;
+    $('profileEmail').textContent = data.user.email || '';
+    $('profileUsername').value = data.profile?.username || '';
+    $('profileName').value = data.profile?.display_name || '';
+    $('bio').value = data.profile?.bio || '';
+    msg('You are signed in.');
+  }
+  async function consumeConfirmation() {
+    if (!location.hash || location.hash.length < 2) return false;
+    const params = new URLSearchParams(location.hash.slice(1));
+    const accessToken = params.get('access_token');
+    const refreshToken = params.get('refresh_token');
+    const type = params.get('type');
+    const errorDescription = params.get('error_description') || params.get('error');
+
+    if (!accessToken && !refreshToken && !errorDescription) return false;
+
+    // Remove credentials from the address bar and browser history before making requests.
+    history.replaceState(null, '', location.pathname + location.search);
+
+    if (errorDescription) {
+      mode('login');
+      msg('The confirmation link could not be used. Request a new confirmation email.', true);
+      return true;
+    }
+    if (type !== 'signup' || !accessToken || !refreshToken) {
+      mode('login');
+      msg('This confirmation link is incomplete or unsupported. Request a new confirmation email.', true);
+      return true;
+    }
+
+    try {
+      await api('/api/v1/auth/confirm', {
+        method: 'POST',
+        body: JSON.stringify({ access_token: accessToken, refresh_token: refreshToken })
+      });
+      await profile();
+      msg('Email confirmed — you are now signed in.');
+    } catch (error) {
+      mode('login');
+      msg(error.message, true);
+    }
+    return true;
+  }
+
+  $('signupTab').onclick = () => mode('signup');
+  $('loginTab').onclick = () => mode('login');
+  s.onsubmit = async event => {
+    event.preventDefault();
+    try {
+      const data = await api('/api/v1/auth/register', {
+        method: 'POST',
+        body: JSON.stringify({
+          username: $('username').value.trim(),
+          display_name: $('displayName').value.trim() || $('username').value.trim(),
+          email: $('email').value.trim(),
+          password: $('password').value
+        })
+      });
+      s.reset();
+      if (data.email_confirmation_required) {
+        mode('login');
+        msg('Check your email for a confirmation link. Opening it will confirm your email and sign you in.');
+      } else {
+        await profile();
+      }
+    } catch (error) {
+      msg(error.message, true);
+    }
+  };
+  l.onsubmit = async event => {
+    event.preventDefault();
+    try {
+      await api('/api/v1/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ email: $('loginEmail').value.trim(), password: $('loginPassword').value })
+      });
+      l.reset();
+      await profile();
+    } catch (error) {
+      msg(error.message, true);
+    }
+  };
+  $('save').onclick = async () => {
+    try {
+      await api('/api/v1/me', {
+        method: 'PATCH',
+        body: JSON.stringify({ display_name: $('profileName').value.trim(), bio: $('bio').value })
+      });
+      msg('Profile saved.');
+    } catch (error) {
+      msg(error.message, true);
+    }
+  };
+  $('logout').onclick = async () => {
+    try {
+      await api('/api/v1/auth/logout', { method: 'POST', body: '{}' });
+      $('signupTab').hidden = $('loginTab').hidden = false;
+      mode('login');
+      msg('You have been logged out.');
+    } catch (error) {
+      msg(error.message, true);
+    }
+  };
+
+  mode('signup');
+  consumeConfirmation().then(handled => {
+    if (!handled) profile().catch(() => {});
+  }).catch(() => {
+    mode('login');
+    msg('The confirmation link could not be processed. Request a new confirmation email.', true);
+  });
+})();
+</script></body></html>

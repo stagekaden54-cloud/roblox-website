@@ -132,7 +132,8 @@ async function handleAuth(request, env, path) {
       return apiError("Display name must be between 1 and 40 characters.");
     }
 
-    const response = await supabaseFetch(env, "/auth/v1/signup", {
+    const redirectTo = new URLSearchParams({ redirect_to: "https://block16.stagekaden54.workers.dev/account" });
+    const response = await supabaseFetch(env, `/auth/v1/signup?${redirectTo}`, {
       method: "POST",
       body: JSON.stringify({
         email: email.trim(),
@@ -144,6 +145,52 @@ async function handleAuth(request, env, path) {
     if (result.response) return result.response;
     const sessionCreated = Boolean(result.body?.access_token);
     return sessionJson({ user: result.body?.user ? { id: result.body.user.id, email: result.body.user.email } : null, email_confirmation_required: !sessionCreated }, sessionCreated ? sessionHeaders(result.body.access_token, result.body.refresh_token, result.body.expires_in) : [], sessionCreated ? 201 : 202);
+  }
+
+  if (path === "/api/v1/auth/confirm" && request.method === "POST") {
+    const requestOrigin = request.headers.get("origin");
+    const fetchSite = request.headers.get("sec-fetch-site");
+    if (!requestOrigin || requestOrigin !== new URL(request.url).origin
+      || (fetchSite && fetchSite !== "same-origin" && fetchSite !== "none")) {
+      return apiError("Confirmation requests must come from this BLOCK16 page.", 403, "CROSS_SITE_REQUEST");
+    }
+    let body;
+    try { body = await readJson(request, 8_192); } catch (error) {
+      return error.message === "REQUEST_TOO_LARGE"
+        ? apiError("Request body is too large.", 413, "REQUEST_TOO_LARGE")
+        : apiError("Send a valid JSON request.", 400, "INVALID_JSON");
+    }
+    const accessToken = body?.access_token;
+    const refreshToken = body?.refresh_token;
+    if (typeof accessToken !== "string" || accessToken.length < 20 || accessToken.length > 8_192
+      || typeof refreshToken !== "string" || refreshToken.length < 10 || refreshToken.length > 2_048) {
+      return apiError("The confirmation link is invalid or incomplete. Request a new confirmation email.", 400, "INVALID_CONFIRMATION");
+    }
+
+    const response = await supabaseFetch(env, "/auth/v1/user", {
+      headers: { authorization: `Bearer ${accessToken}` },
+    });
+    if (!response.ok) {
+      return apiError("This confirmation link is invalid or expired. Request a new confirmation email.", 401, "INVALID_CONFIRMATION");
+    }
+    const user = await response.json().catch(() => null);
+    if (!user?.id || !(user.email_confirmed_at || user.confirmed_at)) {
+      return apiError("Your email has not been confirmed yet. Open the newest confirmation email and try again.", 401, "EMAIL_NOT_CONFIRMED");
+    }
+    // Rotate the refresh token and confirm both tokens belong to the same user.
+    const refreshedResponse = await supabaseFetch(env, "/auth/v1/token?grant_type=refresh_token", {
+      method: "POST",
+      body: JSON.stringify({ refresh_token: refreshToken }),
+    });
+    const refreshed = await refreshedResponse.json().catch(() => ({}));
+    if (!refreshedResponse.ok || refreshed?.user?.id !== user.id
+      || typeof refreshed.access_token !== "string" || typeof refreshed.refresh_token !== "string") {
+      return apiError("This confirmation link is invalid or expired. Request a new confirmation email.", 401, "INVALID_CONFIRMATION");
+    }
+    return sessionJson(
+      { user: { id: user.id, email: user.email || null } },
+      sessionHeaders(refreshed.access_token, refreshed.refresh_token, refreshed.expires_in),
+    );
   }
 
   if (path === "/api/v1/auth/login" && request.method === "POST") {
