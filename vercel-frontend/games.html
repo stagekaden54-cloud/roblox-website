@@ -69,6 +69,14 @@
       <div id="legacyGameGrid" class="legacy-game-grid" aria-label="Legacy games"></div>
       <p id="catalogueEmptyState" class="catalogue-empty-state" hidden>No games in this preview match those filters. Try another genre or clear your search.</p>
     </section>
+    
+    <section class="legacy-archive" aria-labelledby="legacyArchiveTitle">
+      <div class="legacy-archive-heading">
+        <h2 id="legacyArchiveTitle">Archived 2016 artwork</h2>
+        <p>These are preserved source images, not verified game listings. The 2016 source branch does not provide matching game titles or IDs for these images, so BLOCK16 keeps them clearly identified as archive material.</p>
+      </div>
+      <div id="legacyArchiveGrid" class="legacy-archive-grid" aria-label="Unidentified legacy artwork"></div>
+    </section>
     <div class="catalogue-more-art" role="img" aria-label="See more games legacy artwork"></div>
   </main>
 
@@ -77,6 +85,8 @@
     <a href="https://github.com/stagekaden54-cloud/roblox-website" target="_blank" rel="noopener noreferrer">View source</a>
     <p class="static-note">Static preview only. Local search and genre filters are enabled; live catalogue data, ranking metrics, accounts, and game launching remain on the backend roadmap.</p>
   </footer>
+  <script src="/games.js" defer></script>
+  <script src="/archive-gallery.js" defer></script>
   <script>
     (() => {
       const menu = document.getElementById('legacyMore');
