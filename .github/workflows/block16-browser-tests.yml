@@ -1,0 +1,50 @@
+name: BLOCK16 Browser Tests
+
+on:
+  pull_request:
+    paths:
+      - 'vercel-frontend/**'
+      - 'tests/browser/**'
+      - 'playwright.config.js'
+      - 'package.json'
+      - '.github/workflows/block16-browser-tests.yml'
+  push:
+    branches:
+      - block16-rebrand
+    paths:
+      - 'vercel-frontend/**'
+      - 'tests/browser/**'
+      - 'playwright.config.js'
+      - 'package.json'
+      - '.github/workflows/block16-browser-tests.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: block16-browser-tests-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  browser-tests:
+    name: Browser regression tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install test dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run desktop and mobile browser tests
+        run: npm run test:e2e
