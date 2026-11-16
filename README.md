@@ -56,3 +56,17 @@ Proper Way:
 4. Set the physical path to the Roblox Website source code and set the port to whatewer you like.
 5. Set the Host Name to whatewer you like too, try avoiding real websites maybe.
 6. Start The Application Pool and the website itself and profit.
+
+
+## BLOCK16 static Vercel frontend
+
+The `vercel-frontend/` directory is a static preview. It does not run the ASP.NET Framework application or its backend endpoints.
+
+The Games page currently contains only the two named legacy entries whose artwork is explicitly identified in the source: Crossroads and Swordfight. The 2016 branch's Games MVC view is empty and its Games controller is commented out, so it does not provide a verified catalogue dataset for additional titles, IDs, creators, ratings, or player counts.
+
+The page's **Archived 2016 artwork** section is intentionally separate from the game catalogue. Its images are sourced from:
+- `Website/Images/FrontPage.png`
+- `Website/Images/GameCarousel/img3.jpg`
+- `Website/Images/GameCarousel/img5.jpg`
+
+Those assets are displayed as archival artwork only. Their game titles and IDs are not supplied by the source files, so the preview does not invent them or make the images playable. The separate ASP.NET backend remains necessary for a real searchable catalogue, rankings, pagination, and launching.
