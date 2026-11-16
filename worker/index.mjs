@@ -220,7 +220,6 @@ async function handleProfile(request, env, path) {
       updates.avatar_url = body.avatar_url;
     }
     if (Object.keys(updates).length === 0) return apiError("Include at least one editable profile field.");
-    updates.updated_at = new Date().toISOString();
 
     const query = new URLSearchParams({ id: `eq.${auth.user.id}`, select: PROFILE_FIELDS });
     const response = await supabaseFetch(env, `/rest/v1/profiles?${query}`, {
