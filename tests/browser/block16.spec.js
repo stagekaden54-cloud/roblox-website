@@ -160,7 +160,7 @@ test('Membership navigation is linked from all existing static pages', async ({ 
   for (const path of ['/', '/games.html', '/catalog.html', '/membership.html']) {
     await page.goto(path);
     await page.getByRole('link', { name: 'Membership' }).click();
-    await expect(page).toHaveURL(/\\/membership\\.html$/);
+    await expect(page).toHaveURL(/\/membership\.html$/);
     await expect(page).toHaveTitle('BLOCK16 — Membership');
   }
 });
