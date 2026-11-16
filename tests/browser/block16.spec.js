@@ -8,7 +8,7 @@ test('homepage has its own title and renders the legacy landing area', async ({ 
   await expect(page).toHaveTitle('BLOCK16 — Home');
   await expect(page.getByRole('navigation', { name: 'Main navigation' })).toBeVisible();
   await expect(page.locator('.legacy-games')).toBeVisible();
-  await expect(page.locator('#logo img')).toHaveAttribute('alt', 'BLOCK16');
+  await expect(page.locator('#logo span')).toHaveText('BLOCK16');
   expect(pageErrors).toEqual([]);
 });
 
@@ -208,4 +208,28 @@ test('Original artwork preview stays within the viewport on desktop and mobile',
   await expect.poll(() => page.evaluate(() =>
     document.documentElement.scrollWidth <= document.documentElement.clientWidth
   )).toBe(true);
+});
+
+
+test('All static pages share the original BLOCK16 navigation identity', async ({ page }) => {
+  const paths = ['/', '/games.html', '/catalog.html', '/membership.html', '/brand-artwork.html'];
+  for (const path of paths) {
+    await page.goto(path);
+    await expect(page.locator('#logo img')).toHaveAttribute('src', '/assets/block16-original-mark.svg');
+    await expect(page.locator('#logo span')).toHaveText('BLOCK16');
+    await expect(page.locator('link[rel="icon"]')).toHaveAttribute('href', '/assets/block16-original-icon.svg');
+  }
+});
+
+test('Games and Membership navigation stay on the same deployment origin', async ({ page }) => {
+  const paths = ['/', '/games.html', '/catalog.html', '/membership.html', '/brand-artwork.html'];
+  for (const path of paths) {
+    await page.goto(path);
+    const origin = new URL(page.url()).origin;
+    await page.getByRole('link', { name: 'Games', exact: true }).click();
+    await expect(page).toHaveURL(url => url.origin === origin && url.pathname === '/games.html');
+    await page.getByRole('link', { name: 'Membership' }).click();
+    await expect(page).toHaveURL(url => url.origin === origin && url.pathname === '/membership.html');
+    await expect(page).toHaveTitle('BLOCK16 — Membership');
+  }
 });

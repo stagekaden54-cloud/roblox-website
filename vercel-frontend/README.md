@@ -61,3 +61,11 @@ Set the Vercel project's Root Directory to `vercel-frontend`. No framework or bu
 - These new SVGs do not embed, trace, recolor, or reuse the legacy membership PNGs. No AI image-generation tools or generated image assets were used.
 - The builder badge is a visual concept only; it does not imply a real membership tier, creator entitlement, or active backend feature.
 - See `docs/BLOCK16-ORIGINAL-ARTWORK.md` for the asset inventory and provenance notes.
+
+
+## Shared BLOCK16 navigation identity
+- The static Home, Games, Catalog, Membership, and Original Artwork pages use the hand-authored assets/block16-original-mark.svg beside a BLOCK16 wordmark in the shared navigation.
+- Those pages use assets/block16-original-icon.svg as their favicon.
+- Navigation destinations use root-relative paths so each page stays on the same Vercel deployment hostname rather than jumping to a different preview URL.
+- Browser tests verify the same identity on all five pages and check that Games → Membership navigation preserves the deployment origin.
+- This is a visual/navigation consistency update only; it does not activate account services, game launching, memberships, or backend features.
