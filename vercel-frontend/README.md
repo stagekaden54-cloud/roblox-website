@@ -29,3 +29,10 @@ Set the Vercel project's Root Directory to `vercel-frontend`. No framework or bu
 - Layout and hover-sprite behavior are adapted from `Website/CSS/Base/CSS/LandingGames.css`. The original games-page CSS documents the legacy game-item dimensions and layout, but the original JavaScript requests server-rendered game rows from ASP.NET endpoints. That runtime has not been ported to Vercel.
 - Tiles are intentionally non-launching. No game IDs, play URLs, live filters, analytics, account forms, or backend endpoints are fabricated.
 - The page is a source-based static preview, not the original ASP.NET Games page running unchanged.
+
+## Static legacy genre browsing
+- The Games page now exposes genre names based on the verified Website/Images/GenreIcons assets in the repository's 2016 branch: Adventure, Castle, City, Classic, Cthulu, FPS, Fantasy, Funny, LOL, Modern Military, Ninja, Pirate, RPG, Scary, Sci-Fi, Skatepark, Sports, Town and City, Tutorial, War, and Wild West.
+- Genre icons are loaded from those matching legacy asset paths. The genre chips, genre selector, search box, reset control, and name sort run entirely in games.js against the two preview entries.
+- Crossroads and Swordfight are the only entries currently present in the static preview and are labeled Classic. Other genres correctly show an empty-state message until real game records are supplied.
+- Sorting is explicitly limited to name A–Z / Z–A. The 2016 GamesListBehavior.js and GamesPageContainerBehavior.js depend on server-rendered /games/moreresultscached and /games/moreresultsuncached responses plus legacy filter state; those endpoints are not called or copied into this static page.
+- Live popularity, ratings, time windows, search across the full catalogue, pagination, and game launch remain backend responsibilities. No fake ratings, play counts, game IDs, or endpoints are introduced.
