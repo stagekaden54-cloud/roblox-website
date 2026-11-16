@@ -50,7 +50,7 @@ jobs:
           [xml]$webConfig = Get-Content 'Website/Web.config' -Raw
           $siteSettings = Get-Content 'Website/App_Data/Configuration/site-settings.json' -Raw | ConvertFrom-Json
 
-          $apiKey = $environment.Roblox.Configuration.Properties.EnvironmentSettings.setting |
+          $apiKey = $environment.DocumentElement.setting |
             Where-Object { $_.name -eq 'EnvironmentApiKey' } |
             ForEach-Object { $_.value }
           if (-not [string]::IsNullOrWhiteSpace($apiKey)) {
@@ -58,7 +58,7 @@ jobs:
           }
 
           foreach ($name in @('ApplicationDomain','CdnDomain','InternalServicesDomain','ChinaBaseDomain','ChinaCdnDomain')) {
-            $value = $environment.Roblox.Configuration.Properties.EnvironmentSettings.setting |
+            $value = $environment.DocumentElement.setting |
               Where-Object { $_.name -eq $name } |
               ForEach-Object { $_.value }
             if ($value -notmatch '\.invalid        uses: microsoft/setup-msbuild@v2
@@ -550,7 +550,7 @@ jobs:
             throw 'Staging safety check failed: ClientInstallHost must use a reserved .invalid placeholder.'
           }
 
-          $enabledGameFeatures = @($gameLaunch.Roblox.WebsiteSettings.Properties.GameLaunch.setting |
+          $enabledGameFeatures = @($gameLaunch.DocumentElement.setting |
             Where-Object { $_.value -match '^(?i:true)        uses: microsoft/setup-msbuild@v2
 
       - name: Add NuGet
