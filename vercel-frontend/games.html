@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="BLOCK16 classic games catalogue preview using verified legacy game artwork.">
+  <meta name="theme-color" content="#114081">
+  <title>BLOCK16 — Games</title>
+  <link rel="icon" href="/assets/block16-icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/games.css">
+</head>
+<body>
+  <header id="header">
+    <div class="legacy-header-inner">
+      <a id="logo" href="/" aria-label="BLOCK16 home"><img src="/assets/block16-logo.svg" alt="BLOCK16"></a>
+      <nav class="legacy-navigation" aria-label="Main navigation">
+        <ul class="legacy-navigation-list">
+          <li><a href="#" aria-disabled="true" data-inactive-link>My Block16</a></li>
+          <li class="current"><a href="/games.html" aria-current="page">Games</a></li>
+          <li><a href="#" aria-disabled="true" data-inactive-link>Catalog</a></li>
+          <li><a href="#" aria-disabled="true" data-inactive-link>Build</a></li>
+          <li><a href="#" aria-disabled="true" data-inactive-link>Membership</a></li>
+          <li><a href="#" aria-disabled="true" data-inactive-link>Forum</a></li>
+          <li class="legacy-more" id="legacyMore">
+            <button type="button" class="legacy-more-toggle" aria-expanded="false" aria-controls="legacyMoreMenu">More <span class="legacy-arrow" aria-hidden="true"></span></button>
+            <ul class="legacy-dropdown" id="legacyMoreMenu" hidden>
+              <li><a href="#" aria-disabled="true" data-inactive-link>Browse</a></li>
+              <li><a href="#" aria-disabled="true" data-inactive-link>Contests</a></li>
+              <li><a href="#" aria-disabled="true" data-inactive-link>News</a></li>
+              <li><a href="#" aria-disabled="true" data-inactive-link>Help</a></li>
+            </ul>
+          </li>
+        </ul>
+      </nav>
+      <div id="login"><span id="loginButton" aria-disabled="true" title="Account services are not connected yet">Login</span></div>
+    </div>
+  </header>
+
+  <main class="games-catalogue">
+    <p class="catalogue-notice">Classic games catalogue preview. These verified legacy artwork links are displayed for browsing only; game launching and live catalogue data are not connected.</p>
+    <div class="catalogue-heading">
+      <h1>Games</h1>
+      <p>Explore classic BLOCK16 experiences</p>
+    </div>
+    <section class="legacy-game-grid" aria-label="Featured legacy games">
+      <article class="legacy-game-card">
+        <a class="legacy-game-art crossroads-art" href="#" aria-disabled="true" data-inactive-link aria-label="Crossroads — game launching is not connected">
+          <span class="visually-hidden">Crossroads</span>
+        </a>
+        <h2>Crossroads</h2>
+      </article>
+      <article class="legacy-game-card">
+        <a class="legacy-game-art swordfight-art" href="#" aria-disabled="true" data-inactive-link aria-label="Swordfight — game launching is not connected">
+          <span class="visually-hidden">Swordfight</span>
+        </a>
+        <h2>Swordfight</h2>
+      </article>
+    </section>
+    <div class="catalogue-more-art" role="img" aria-label="See more games legacy artwork"></div>
+  </main>
+
+  <footer id="footer">
+    BLOCK16 — independent classic-era revival project.
+    <a href="https://github.com/stagekaden54-cloud/roblox-website" target="_blank" rel="noopener noreferrer">View source</a>
+    <p class="static-note">Static preview only. Game launching, live filters, accounts, and backend services are not connected.</p>
+  </footer>
+  <script>
+    (() => {
+      const menu = document.getElementById('legacyMore');
+      const toggle = menu.querySelector('.legacy-more-toggle');
+      const dropdown = document.getElementById('legacyMoreMenu');
+      toggle.addEventListener('click', () => {
+        const open = toggle.getAttribute('aria-expanded') !== 'true';
+        toggle.setAttribute('aria-expanded', String(open));
+        dropdown.hidden = !open;
+        menu.classList.toggle('active', open);
+      });
+      document.addEventListener('click', (event) => {
+        if (!menu.contains(event.target)) {
+          toggle.setAttribute('aria-expanded', 'false');
+          dropdown.hidden = true;
+          menu.classList.remove('active');
+        }
+      });
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+          toggle.setAttribute('aria-expanded', 'false');
+          dropdown.hidden = true;
+          menu.classList.remove('active');
+          toggle.focus();
+        }
+      });
+      document.querySelectorAll('[data-inactive-link]').forEach((link) => {
+        link.addEventListener('click', (event) => event.preventDefault());
+      });
+    })();
+  </script>
+</body>
+</html>
