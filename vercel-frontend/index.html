@@ -3,42 +3,31 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="BLOCK16 classic-era website preview, using legacy LandingGames styling and artwork.">
+  <meta name="description" content="BLOCK16 classic-era game page using artwork from the legacy website repository.">
   <meta name="theme-color" content="#1768b2">
-  <title>BLOCK16 — Build, Play, Explore</title>
+  <title>BLOCK16 — Games</title>
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
   <header id="header">
     <div id="logo" aria-label="BLOCK16">BLOCK16</div>
     <div id="login">
-      <span id="loginButton" aria-disabled="true" title="Account services are not connected yet">Login <span></span></span>
+      <span id="loginButton" aria-disabled="true" title="Account services are not connected yet">Login</span>
     </div>
   </header>
 
   <main id="container">
-    <section id="videoContainer" aria-label="Welcome">
-      <div id="video" role="img" aria-label="Video preview unavailable in this static build">
-        <span>BLOCK16<br>Classic website preview</span>
-      </div>
-      <div id="link_text">
-        Build, play, and explore.
-        <p>Discover classic-style games and creations. This is the first static frontend slice; interactive platform services will be connected separately.</p>
-      </div>
-    </section>
-
-    <section class="legacy-games" aria-label="Legacy game artwork">
-      <a class="crossroads" aria-disabled="true" tabindex="-1">Crossroads game preview</a>
-      <a class="swordfight" aria-disabled="true" tabindex="-1">Swordfight game preview</a>
-      <a class="seemoregames" aria-disabled="true" tabindex="-1">More games preview</a>
+    <section class="legacy-games" aria-label="Classic games">
+      <div class="crossroads" role="img" aria-label="Crossroads game artwork"></div>
+      <div class="swordfight" role="img" aria-label="Swordfight game artwork"></div>
+      <div class="seemoregames" role="img" aria-label="More games artwork"></div>
     </section>
   </main>
-
-  <p class="static-note">Preview only: sign-in, registration, catalog actions, game launching, and other backend features are not connected on this Vercel frontend.</p>
 
   <footer id="footer">
     BLOCK16 — independent classic-era revival project.
     <a href="https://github.com/stagekaden54-cloud/roblox-website" target="_blank" rel="noopener noreferrer">View source</a>
+    <p class="static-note">Static preview: account services and game launching are not connected yet.</p>
   </footer>
 </body>
 </html>
