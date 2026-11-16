@@ -40,6 +40,53 @@ jobs:
       - name: Check out source
         uses: actions/checkout@v4
 
+      - name: Validate staging safety defaults
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          [xml]$environment = Get-Content 'Website/App_Data/Configuration/Roblox.Configuration.Properties.EnvironmentSettings.config' -Raw
+          [xml]$gameLaunch = Get-Content 'Website/App_Data/Configuration/Roblox.GameLaunch.Properties.Settings.config' -Raw
+          [xml]$machineKey = Get-Content 'Website/App_Data/Configuration/machinekey.config' -Raw
+          $siteSettings = Get-Content 'Website/App_Data/Configuration/site-settings.json' -Raw | ConvertFrom-Json
+
+          $apiKey = $environment.DocumentElement.setting |
+            Where-Object { $_.name -eq 'EnvironmentApiKey' } |
+            ForEach-Object { $_.value }
+          if (-not [string]::IsNullOrWhiteSpace($apiKey)) {
+            throw 'EnvironmentApiKey must be empty in tracked staging configuration.'
+          }
+
+          foreach ($name in @('ApplicationDomain','CdnDomain','InternalServicesDomain','ChinaBaseDomain','ChinaCdnDomain')) {
+            $value = $environment.DocumentElement.setting |
+              Where-Object { $_.name -eq $name } |
+              ForEach-Object { $_.value }
+            if (-not $value.EndsWith('.invalid')) {
+              throw "$name must use a reserved .invalid placeholder until an owned endpoint is configured."
+            }
+          }
+
+          if (-not $siteSettings.Installer.ClientInstallHost.EndsWith('.invalid')) {
+            throw 'ClientInstallHost must use a reserved .invalid placeholder.'
+          }
+
+          $enabledGameFeatures = @($gameLaunch.DocumentElement.setting |
+            Where-Object { $_.value -match '^(?i:true)$' })
+          if ($enabledGameFeatures.Count -gt 0) {
+            throw 'All legacy game-join features must remain disabled in staging.'
+          }
+
+          if ($machineKey.DocumentElement.validationKey -ne 'AutoGenerate,IsolateApps' -or
+              $machineKey.DocumentElement.decryptionKey -ne 'AutoGenerate,IsolateApps') {
+            throw 'Tracked machine-key values must not contain fixed keys.'
+          }
+
+          $webConfigText = Get-Content 'Website/Web.config' -Raw
+          if ($webConfigText -notmatch '(?s)<location path="Admi">.*?<deny users="\*"') {
+            throw 'The legacy admin path must remain explicitly denied.'
+          }
+
+          Write-Host 'Staging safety defaults validated.'
+
       - name: Add Visual Studio MSBuild
         uses: microsoft/setup-msbuild@v2
 
