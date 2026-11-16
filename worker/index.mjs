@@ -96,7 +96,7 @@ function sessionJson(data, cookies = [], status = 200) {
 async function requireUser(request, env) {
   let token = cookieValue(request, "b16_access");
   const refreshToken = cookieValue(request, "b16_refresh");
-  if (!token) token = (request.headers.get("authorization") || "").match(/^Bearer\\s+(.+)$/i)?.[1] || null;
+  if (!token) token = (request.headers.get("authorization") || "").match(/^Bearer\s+(.+)$/i)?.[1] || null;
   if (!token && !refreshToken) return { error: apiError("Sign in to continue.", 401, "UNAUTHENTICATED") };
   let response = token ? await supabaseFetch(env, "/auth/v1/user", { headers: { authorization: `Bearer ${token}` } }) : null;
   let cookies = [];
