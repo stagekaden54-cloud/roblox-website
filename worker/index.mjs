@@ -65,6 +65,43 @@ async function supabaseFetch(env, path, options = {}) {
   return fetch(`${env.SUPABASE_URL.replace(/\/$/, "")}${path}`, { ...options, headers });
 }
 
+
+// D1 is introduced as an optional data store during the migration.
+// Authentication remains on the existing provider until its replacement is designed.
+function d1ProfileRow(row) {
+  if (!row) return null;
+  return {
+    id: row.id, username: row.username, display_name: row.display_name,
+    avatar_url: row.avatar_url, bio: row.bio,
+    created_at: row.created_at, updated_at: row.updated_at,
+  };
+}
+
+async function ensureD1Profile(db, user) {
+  const metadata = user.user_metadata || {};
+  const fallbackUsername = `player_${String(user.id).replace(/-/g, "").slice(0, 13)}`;
+  const username = validUsername(metadata.username) ? metadata.username : fallbackUsername;
+  const displayName = typeof metadata.display_name === "string" && metadata.display_name.trim()
+    ? metadata.display_name.trim().slice(0, 40) : username;
+  await db.prepare(`
+    INSERT INTO players (id, email) VALUES (?, ?)
+    ON CONFLICT(id) DO UPDATE SET email = excluded.email, updated_at = CURRENT_TIMESTAMP
+  `).bind(user.id, user.email || null).run();
+  await db.prepare(`
+    INSERT INTO profiles (id, username, display_name)
+    VALUES (?, ?, ?)
+    ON CONFLICT(id) DO NOTHING
+  `).bind(user.id, username, displayName).run();
+}
+
+async function getD1Profile(db, userId) {
+  const row = await db.prepare(`
+    SELECT id, username, display_name, avatar_url, bio, created_at, updated_at
+    FROM profiles WHERE id = ? LIMIT 1
+  `).bind(userId).first();
+  return d1ProfileRow(row);
+}
+
 async function parseProviderResponse(response) {
   const body = await response.json().catch(() => ({}));
   if (!response.ok) {
@@ -231,6 +268,11 @@ async function handleProfile(request, env, path) {
   if (path === "/api/v1/me" && request.method === "GET") {
     const auth = await requireUser(request, env);
     if (auth.error) return auth.error;
+    if (env.DB) {
+      await ensureD1Profile(env.DB, auth.user);
+      const profile = await getD1Profile(env.DB, auth.user.id);
+      return sessionJson({ user: { id: auth.user.id, email: auth.user.email }, profile }, auth.cookies);
+    }
     const query = new URLSearchParams({ id: `eq.${auth.user.id}`, select: PROFILE_FIELDS, limit: "1" });
     const response = await supabaseFetch(env, `/rest/v1/profiles?${query}`, {
       headers: { authorization: `Bearer ${auth.token}` },
@@ -268,6 +310,16 @@ async function handleProfile(request, env, path) {
     }
     if (Object.keys(updates).length === 0) return apiError("Include at least one editable profile field.");
 
+    if (env.DB) {
+      await ensureD1Profile(env.DB, auth.user);
+      const fields = Object.keys(updates);
+      const assignments = fields.map(field => `${field} = ?`).join(", ");
+      const values = fields.map(field => updates[field]);
+      await env.DB.prepare(`UPDATE profiles SET ${assignments}, updated_at = CURRENT_TIMESTAMP WHERE id = ?`)
+        .bind(...values, auth.user.id).run();
+      const profile = await getD1Profile(env.DB, auth.user.id);
+      return sessionJson({ profile }, auth.cookies);
+    }
     const query = new URLSearchParams({ id: `eq.${auth.user.id}`, select: PROFILE_FIELDS });
     const response = await supabaseFetch(env, `/rest/v1/profiles?${query}`, {
       method: "PATCH",
@@ -289,17 +341,29 @@ async function handleGames(request, env, path) {
   const match = path.match(/^\/api\/v1\/games(?:\/([a-z0-9]+(?:-[a-z0-9]+)*))?$/);
   if (!match) return null;
 
-  const query = new URLSearchParams({
-    select: GAME_FIELDS,
-    status: "eq.published",
-    order: "created_at.desc",
-    limit: "50",
-  });
-  if (match[1]) query.set("slug", `eq.${match[1]}`);
-
-  const response = await supabaseFetch(env, `/rest/v1/games?${query}`);
-  if (!response.ok) return apiError("Could not load the game catalogue.", 502, "DATABASE_ERROR");
-  const games = await response.json();
+  let games;
+  if (env.DB) {
+    const fields = "id,slug,title,description,genre,thumbnail_url,creator_id,created_at,updated_at";
+    const result = match[1]
+      ? await env.DB.prepare(`SELECT ${fields} FROM games WHERE status = 'published' AND slug = ? LIMIT 1`).bind(match[1]).first()
+      : null;
+    if (match[1]) games = result ? [result] : [];
+    else {
+      const rows = await env.DB.prepare(`SELECT ${fields} FROM games WHERE status = 'published' ORDER BY created_at DESC LIMIT 50`).all();
+      games = rows.results || [];
+    }
+  } else {
+    const query = new URLSearchParams({
+      select: GAME_FIELDS,
+      status: "eq.published",
+      order: "created_at.desc",
+      limit: "50",
+    });
+    if (match[1]) query.set("slug", `eq.${match[1]}`);
+    const response = await supabaseFetch(env, `/rest/v1/games?${query}`);
+    if (!response.ok) return apiError("Could not load the game catalogue.", 502, "DATABASE_ERROR");
+    games = await response.json();
+  }
   if (match[1]) {
     if (!games[0]) return apiError("Game not found.", 404, "NOT_FOUND");
     return json({ game: games[0] });
