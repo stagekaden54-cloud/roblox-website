@@ -99,3 +99,71 @@ test("successful registration stores Supabase tokens in HttpOnly cookies, not JS
     assert.match(response.headers.get("set-cookie") || "", /SameSite=Lax/);
   } finally { globalThis.fetch = originalFetch; }
 });
+
+
+test("signup sends the account page as Supabase confirmation redirect", async () => {
+  const originalFetch = globalThis.fetch;
+  let requestedUrl = "";
+  globalThis.fetch = async input => {
+    requestedUrl = String(input);
+    return Response.json({
+      user: { id: "user-2", email: "newplayer@example.com" },
+      access_token: null,
+      refresh_token: null,
+    }, { status: 200 });
+  };
+  try {
+    const response = await worker.fetch(new Request("https://block16.test/api/v1/auth/register", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ email: "newplayer@example.com", password: "password123", username: "new_player" }),
+    }), env);
+    assert.equal(response.status, 202);
+    const url = new URL(requestedUrl);
+    assert.equal(url.pathname, "/auth/v1/signup");
+    assert.equal(url.searchParams.get("redirect_to"), "https://block16.stagekaden54.workers.dev/account");
+  } finally { globalThis.fetch = originalFetch; }
+});
+
+test("confirmation validates Supabase user and sets HttpOnly session cookies without returning tokens", async () => {
+  const originalFetch = globalThis.fetch;
+  let requestedAuthorization = "";
+  globalThis.fetch = async (input, init = {}) => {
+    assert.match(String(input), /\/auth\/v1\/user$/);
+    requestedAuthorization = new Headers(init.headers).get("authorization");
+    return Response.json({ id: "user-verified", email: "verified@example.com", email_confirmed_at: "2026-11-16T00:00:00Z" });
+  };
+  try {
+    const response = await worker.fetch(new Request("https://block16.test/api/v1/auth/confirm", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ access_token: "access-token-value-long-enough", refresh_token: "refresh-token-value" }),
+    }), env);
+    assert.equal(response.status, 200);
+    assert.equal(requestedAuthorization, "Bearer access-token-value-long-enough");
+    const body = await response.json();
+    assert.deepEqual(body, { user: { id: "user-verified", email: "verified@example.com" } });
+    assert.equal(JSON.stringify(body).includes("access-token"), false);
+    const cookies = response.headers.get("set-cookie") || "";
+    assert.match(cookies, /b16_access=access-token-value-long-enough/);
+    assert.match(cookies, /b16_refresh=refresh-token-value/);
+    assert.match(cookies, /HttpOnly/);
+    assert.match(cookies, /Secure/);
+    assert.match(cookies, /SameSite=Lax/);
+  } finally { globalThis.fetch = originalFetch; }
+});
+
+test("confirmation rejects invalid or unverified tokens without setting cookies", async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => Response.json({ id: "user-unverified", email: "pending@example.com" });
+  try {
+    const response = await worker.fetch(new Request("https://block16.test/api/v1/auth/confirm", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ access_token: "access-token-value-long-enough", refresh_token: "refresh-token-value" }),
+    }), env);
+    assert.equal(response.status, 401);
+    assert.equal(response.headers.get("set-cookie"), null);
+    assert.equal((await response.json()).error.code, "EMAIL_NOT_CONFIRMED");
+  } finally { globalThis.fetch = originalFetch; }
+});
