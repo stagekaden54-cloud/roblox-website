@@ -1,19 +1,18 @@
 # BLOCK16 Vercel frontend
 
-This folder is the intentionally small, static frontend slice for Vercel.
+This folder contains a static frontend slice for Vercel. The current homepage adapts the repository's legacy `Website/CSS/Base/CSS/LandingGames.css` and uses the matching artwork in `Website/Images/LandingGames/`.
 
-## Included
-- Static homepage
-- Static Windows client information page
-- BLOCK16 logo and favicon
-- Standalone responsive CSS
+## Frontend/backend boundary
+- Vercel serves static HTML and CSS only.
+- Legacy artwork is referenced from the repository's public raw GitHub paths for this initial slice.
+- ASP.NET Web Forms/MVC pages, authentication, database access, membership operations, and game launching remain on a separate ASP.NET-compatible backend host.
+- No login or signup form is submitted from this static page. Backend endpoints must not be guessed or enabled before the backend is ready.
 
-## Not included
-The legacy ASP.NET WebForms/MVC application, authentication services, database access, account operations, and server-side membership logic remain outside this Vercel project.
+## Vercel
+Set the Vercel project's Root Directory to `vercel-frontend`. No framework or build command is required.
 
-## Vercel setup
-Create or configure a Vercel project linked to this repository and set its **Root Directory** to `vercel-frontend`. No framework or build command is required; this is a static HTML/CSS site.
-
-Do not deploy the repository root or the `Website` directory as a Vercel app. The legacy application requires an ASP.NET-compatible host.
-
-The backend origin and any reverse-proxy routes must be configured only after the legacy backend has a confirmed public HTTPS origin. Do not point login or account links at an unverified host.
+## Notes
+- The HTML structure is a static adaptation around the real legacy stylesheet; it is not claimed to be recovered original page markup.
+- The source stylesheet is preserved in `Website/CSS/Base/CSS/LandingGames.css`. The Vercel copy changes only the legacy image URL paths to the public raw repository asset URLs and adds responsive overrides.
+- For a later production setup, consider serving a pinned copy of the image assets from the Vercel deployment rather than depending on raw GitHub URLs.
+- Do not deploy the repository root or `Website` as a Vercel app. The legacy application requires an ASP.NET-compatible host.
