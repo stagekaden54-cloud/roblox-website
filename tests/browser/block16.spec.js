@@ -1,0 +1,98 @@
+const { test, expect } = require('@playwright/test');
+
+test('homepage has its own title and renders the legacy landing area', async ({ page }) => {
+  const pageErrors = [];
+  page.on('pageerror', error => pageErrors.push(error.message));
+
+  await page.goto('/');
+  await expect(page).toHaveTitle('BLOCK16 — Home');
+  await expect(page.getByRole('navigation', { name: 'Main navigation' })).toBeVisible();
+  await expect(page.locator('.legacy-games')).toBeVisible();
+  await expect(page.locator('#logo img')).toHaveAttribute('alt', 'BLOCK16');
+  expect(pageErrors).toEqual([]);
+});
+
+test('More navigation opens, closes, and supports Escape', async ({ page }) => {
+  await page.goto('/');
+
+  const toggle = page.getByRole('button', { name: 'More' });
+  const menu = page.locator('#legacyMoreMenu');
+
+  await expect(menu).toBeHidden();
+  await toggle.click();
+  await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+  await expect(menu).toBeVisible();
+
+  await page.keyboard.press('Escape');
+  await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+  await expect(menu).toBeHidden();
+  await expect(toggle).toBeFocused();
+});
+
+test('Games page loads its catalogue and local search works', async ({ page }) => {
+  const pageErrors = [];
+  page.on('pageerror', error => pageErrors.push(error.message));
+
+  await page.goto('/games.html');
+  await expect(page).toHaveTitle('BLOCK16 — Games');
+  await expect(page.getByRole('heading', { name: 'Games', exact: true })).toBeVisible();
+  await expect(page.locator('.legacy-game-card')).toHaveCount(2);
+  await expect(page.locator('#catalogueResultsStatus')).toHaveText('2 games shown');
+
+  await page.getByRole('searchbox', { name: 'Search games' }).fill('cross');
+  await expect(page.locator('.legacy-game-card')).toHaveCount(1);
+  await expect(page.locator('.legacy-game-card h2')).toHaveText(['Crossroads']);
+  await expect(page.locator('#catalogueResultsStatus')).toHaveText('1 game shown');
+
+  await page.getByRole('searchbox', { name: 'Search games' }).fill('no matching title');
+  await expect(page.locator('.legacy-game-card')).toHaveCount(0);
+  await expect(page.locator('#catalogueEmptyState')).toBeVisible();
+  expect(pageErrors).toEqual([]);
+});
+
+test('genre selection, sorting, and reset stay in sync', async ({ page }) => {
+  await page.goto('/games.html');
+
+  await page.locator('#genreFilter').selectOption('Classic');
+  await expect(page.locator('.legacy-game-card')).toHaveCount(2);
+  await expect(page.locator('.legacy-genre-button[data-genre="Classic"]'))
+    .toHaveAttribute('aria-pressed', 'true');
+
+  await page.locator('#genreFilter').selectOption('Adventure');
+  await expect(page.locator('.legacy-game-card')).toHaveCount(0);
+  await expect(page.locator('#catalogueEmptyState')).toBeVisible();
+
+  await page.locator('#resetGameFilters').click();
+  await expect(page.locator('.legacy-game-card')).toHaveCount(2);
+  await expect(page.locator('#genreFilter')).toHaveValue('');
+  await expect(page.locator('#sortFilter')).toHaveValue('az');
+  await expect(page.locator('#gameSearch')).toHaveValue('');
+  await expect(page.locator('.legacy-genre-button[data-genre="Classic"]'))
+    .toHaveAttribute('aria-pressed', 'false');
+});
+
+test('archive gallery renders all three source-labelled images', async ({ page }) => {
+  await page.goto('/games.html');
+
+  const archive = page.locator('#legacyArchiveGrid');
+  await expect(archive.locator('.legacy-archive-card')).toHaveCount(3);
+  await expect(archive.locator('img')).toHaveCount(3);
+  await expect(archive.locator('code')).toHaveCount(3);
+
+  const imageSources = await archive.locator('img').evaluateAll(images =>
+    images.map(image => image.getAttribute('src'))
+  );
+  expect(imageSources.every(source =>
+    source && source.startsWith('https://raw.githubusercontent.com/stagekaden54-cloud/roblox-website/2016/')
+  )).toBe(true);
+});
+
+test('mobile and desktop layouts do not create page-level horizontal overflow', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  for (const path of ['/', '/games.html']) {
+    await page.goto(path);
+    await expect.poll(() => page.evaluate(() =>
+      document.documentElement.scrollWidth <= document.documentElement.clientWidth
+    )).toBe(true);
+  }
+});
