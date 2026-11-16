@@ -53,3 +53,11 @@ Set the Vercel project's Root Directory to `vercel-frontend`. No framework or bu
 - **Permission record:** The project maintainer reports that Intel explicitly confirmed permission to modify and redistribute these three membership images. Preserve Intel's original written confirmation (for example, the message or screenshot) with the project's records. This permission record applies only to the three identified image files and only to the extent Intel has authority to grant those rights; it does not establish permission for unrelated assets, contributors' work, Roblox trademarks, or other intellectual property.
 - The source repository has no license file. Do not treat this individual asset permission as a general license for the repository or its other contents.
 - The page and its artwork are a visual study only. They do not represent actual membership tiers or promised features. Membership navigation links point to this static page; account and payment actions remain disconnected.
+
+
+## Original BLOCK16 visual identity artwork
+- `brand-artwork.html` is a static preview page for the original BLOCK16 vector artwork pack.
+- `assets/block16-original-mark.svg`, `assets/block16-original-icon.svg`, and `assets/block16-original-builder-badge.svg` are hand-authored SVGs built from geometric paths, gradients, and strokes.
+- These new SVGs do not embed, trace, recolor, or reuse the legacy membership PNGs. No AI image-generation tools or generated image assets were used.
+- The builder badge is a visual concept only; it does not imply a real membership tier, creator entitlement, or active backend feature.
+- See `docs/BLOCK16-ORIGINAL-ARTWORK.md` for the asset inventory and provenance notes.
