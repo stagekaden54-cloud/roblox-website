@@ -8,7 +8,7 @@ test('homepage has its own title and renders the legacy landing area', async ({ 
   await expect(page).toHaveTitle('BLOCK16 — Home');
   await expect(page.getByRole('navigation', { name: 'Main navigation' })).toBeVisible();
   await expect(page.locator('.legacy-games')).toBeVisible();
-  await expect(page.locator('#logo img')).toHaveAttribute('alt', 'BLOCK16');
+  await expect(page.locator('#logo span')).toHaveText('BLOCK16');
   expect(pageErrors).toEqual([]);
 });
 
@@ -226,7 +226,7 @@ test('Games and Membership navigation stay on the same deployment origin', async
   for (const path of paths) {
     await page.goto(path);
     const origin = new URL(page.url()).origin;
-    await page.getByRole('link', { name: 'Games' }).click();
+    await page.getByRole('link', { name: 'Games', exact: true }).click();
     await expect(page).toHaveURL(url => url.origin === origin && url.pathname === '/games.html');
     await page.getByRole('link', { name: 'Membership' }).click();
     await expect(page).toHaveURL(url => url.origin === origin && url.pathname === '/membership.html');
