@@ -131,3 +131,43 @@ test('mobile and desktop layouts do not create page-level horizontal overflow', 
     )).toBe(true);
   }
 });
+
+test('Membership page uses modified legacy artwork and clearly disables purchases', async ({ page }) => {
+  const pageErrors = [];
+  page.on('pageerror', error => pageErrors.push(error.message));
+
+  await page.goto('/membership.html');
+  await expect(page).toHaveTitle('BLOCK16 — Membership');
+  await expect(page.getByRole('heading', { name: 'BLOCK16 Membership' })).toBeVisible();
+  await expect(page.locator('.membership-art-card')).toHaveCount(3);
+  await expect(page.locator('.membership-art-card img')).toHaveCount(3);
+  await expect(page.locator('.membership-notice')).toContainText('not active');
+  await expect(page.getByRole('link', { name: 'Membership' })).toHaveAttribute('aria-current', 'page');
+  await expect(page.getByRole('button', { name: /purchase|subscribe|buy/i })).toHaveCount(0);
+
+  const imageSources = await page.locator('.membership-art-card img').evaluateAll(images =>
+    images.map(image => image.getAttribute('src'))
+  );
+  expect(imageSources).toEqual([
+    '/assets/membership-artwork-blue.svg',
+    '/assets/membership-artwork-silver.svg',
+    '/assets/membership-artwork-gold.svg'
+  ]);
+  expect(pageErrors).toEqual([]);
+});
+
+test('Membership navigation is linked from all existing static pages', async ({ page }) => {
+  for (const path of ['/', '/games.html', '/catalog.html', '/membership.html']) {
+    await page.goto(path);
+    await page.getByRole('link', { name: 'Membership' }).click();
+    await expect(page).toHaveURL(/\\/membership\\.html$/);
+    await expect(page).toHaveTitle('BLOCK16 — Membership');
+  }
+});
+
+test('Membership layout does not overflow at desktop and mobile sizes', async ({ page }) => {
+  await page.goto('/membership.html');
+  await expect.poll(() => page.evaluate(() =>
+    document.documentElement.scrollWidth <= document.documentElement.clientWidth
+  )).toBe(true);
+});
