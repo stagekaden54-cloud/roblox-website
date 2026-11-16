@@ -112,7 +112,7 @@ jobs:
         run: dotnet restore Website/Roblox.Website.sln
 
       - name: Build ASP.NET website solution
-        run: msbuild Website/Roblox.Website.sln /m /p:Configuration=Release "/p:Platform=AnyCPU" /p:RestorePackagesConfig=true /verbosity:minimal
+        run: msbuild Website/Roblox.Website.sln /m /p:Configuration=Release "/p:Platform=Any CPU" /p:RestorePackagesConfig=true /verbosity:minimal
 
       - name: Package compiled website assemblies
         shell: pwsh
