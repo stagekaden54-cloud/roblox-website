@@ -177,6 +177,16 @@ jobs:
             throw "The ASP.NET website publish step failed with exit code $LASTEXITCODE"
           }
 
+          # This legacy project generates the complete Web Application Package under
+          # obj\\Release\\Package\\PackageTmp even when PublishUrl is supplied.
+          # Stage that verified package payload as the deployable website directory.
+          $packageTmp = Join-Path $env:GITHUB_WORKSPACE 'Website\\obj\\Release\\Package\\PackageTmp'
+          if (-not (Test-Path $packageTmp -PathType Container)) {
+            throw "MSBuild completed but its complete website package payload was not found: $packageTmp"
+          }
+
+          Copy-Item -Path (Join-Path $packageTmp '*') -Destination $publishPath -Recurse -Force
+
           $requiredFiles = @(
             'Default.aspx',
             'Global.asax',
