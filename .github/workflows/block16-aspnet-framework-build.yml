@@ -171,7 +171,7 @@ jobs:
 
           New-Item -ItemType Directory -Path $publishPath -Force | Out-Null
 
-          & msbuild Website/Roblox.Website.csproj /m /p:Configuration=Release "/p:Platform=Any CPU" /p:DeployOnBuild=true /p:WebPublishMethod=FileSystem "/p:PublishUrl=$publishPath" /p:DeleteExistingFiles=true /p:PrecompileBeforePublish=false "/p:VSToolsPath=$env:VSToolsPath" "/p:VisualStudioVersion=$env:VisualStudioVersion" /verbosity:minimal
+          & msbuild Website/Roblox.Website.csproj /m /p:Configuration=Release "/p:Platform=AnyCPU" /p:DeployOnBuild=true /p:WebPublishMethod=FileSystem "/p:PublishUrl=$publishPath" /p:DeleteExistingFiles=true /p:PrecompileBeforePublish=false "/p:VSToolsPath=$env:VSToolsPath" "/p:VisualStudioVersion=$env:VisualStudioVersion" /verbosity:minimal
 
           if ($LASTEXITCODE -ne 0) {
             throw "The ASP.NET website publish step failed with exit code $LASTEXITCODE"
