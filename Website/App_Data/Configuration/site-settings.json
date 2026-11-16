@@ -8,7 +8,7 @@
   },
   "Installer": {
     "UseUpdatedInstallationInstructionsModal": false,
-    "ClientInstallHost": "localhost"
+    "ClientInstallHost": "downloads.example.invalid"
   },
   "DebugLinks": [
     "ping",
