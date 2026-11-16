@@ -58,6 +58,9 @@ test('genre selection, sorting, and reset stay in sync', async ({ page }) => {
   await expect(page.locator('.legacy-genre-button[data-genre="Classic"]'))
     .toHaveAttribute('aria-pressed', 'true');
 
+  await page.locator('#sortFilter').selectOption('za');
+  await expect(page.locator('.legacy-game-card h2')).toHaveText(['Swordfight', 'Crossroads']);
+
   await page.locator('#genreFilter').selectOption('Adventure');
   await expect(page.locator('.legacy-game-card')).toHaveCount(0);
   await expect(page.locator('#catalogueEmptyState')).toBeVisible();
