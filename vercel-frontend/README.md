@@ -22,3 +22,10 @@ Set the Vercel project's Root Directory to `vercel-frontend`. No framework or bu
 - The homepage keeps the existing legacy game artwork and adds the source-based navigation as a separate feature.
 - This is a static adaptation using the repository's legacy navigation structure, not a claim that the original ASP.NET menu can run on Vercel.
 - Keep account actions, tracking pixels, advertising frames, installers, and game launching out of this static frontend until their behavior and privacy/security implications are reviewed.
+
+## Static games catalogue preview
+- `games.html` is a static Vercel page linked from the homepage Games navigation item.
+- Its two named game tiles use the repository's verified legacy Crossroads and Swordfight artwork from the `2016` source branch; the "See more games" artwork is presented separately as a legacy visual element, not mislabeled as a game.
+- Layout and hover-sprite behavior are adapted from `Website/CSS/Base/CSS/LandingGames.css`. The original games-page CSS documents the legacy game-item dimensions and layout, but the original JavaScript requests server-rendered game rows from ASP.NET endpoints. That runtime has not been ported to Vercel.
+- Tiles are intentionally non-launching. No game IDs, play URLs, live filters, analytics, account forms, or backend endpoints are fabricated.
+- The page is a source-based static preview, not the original ASP.NET Games page running unchanged.
