@@ -52,3 +52,25 @@ test("non-API requests fall through to static assets", async () => {
   assert.equal(response.status, 200);
   assert.equal(await response.text(), "static asset");
 });
+
+
+test("published games endpoint reads only published catalogue records", async () => {
+  const originalFetch = globalThis.fetch;
+  let requestedUrl = "";
+  globalThis.fetch = async (input, init = {}) => {
+    requestedUrl = String(input);
+    assert.equal(new Headers(init.headers).get("apikey"), "test-anon-key");
+    return Response.json([{ id: "g1", slug: "crossroads", title: "Crossroads" }]);
+  };
+  try {
+    const response = await worker.fetch(new Request("https://block16.test/api/v1/games"), env);
+    assert.equal(response.status, 200);
+    assert.deepEqual(await response.json(), {
+      games: [{ id: "g1", slug: "crossroads", title: "Crossroads" }],
+    });
+    assert.match(requestedUrl, /status=eq\.published/);
+    assert.match(requestedUrl, /limit=50/);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
