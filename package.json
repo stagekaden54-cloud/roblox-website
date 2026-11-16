@@ -2,8 +2,9 @@
   "name": "block16-browser-tests",
   "private": true,
   "version": "1.0.0",
-  "description": "Browser regression tests for the BLOCK16 static frontend",
+  "description": "BLOCK16 browser regression tests and Worker API tests",
   "scripts": {
+    "test": "node --test tests/worker/*.test.mjs",
     "test:e2e": "playwright test"
   },
   "devDependencies": {
