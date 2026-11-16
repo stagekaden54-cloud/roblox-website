@@ -88,7 +88,6 @@ test('archive gallery renders all three source-labelled images', async ({ page }
 });
 
 test('mobile and desktop layouts do not create page-level horizontal overflow', async ({ page }) => {
-  await page.setViewportSize({ width: 390, height: 844 });
   for (const path of ['/', '/games.html']) {
     await page.goto(path);
     await expect.poll(() => page.evaluate(() =>
