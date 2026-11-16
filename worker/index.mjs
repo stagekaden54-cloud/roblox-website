@@ -171,9 +171,19 @@ async function handleAuth(request, env, path) {
     if (!user?.id || !(user.email_confirmed_at || user.confirmed_at)) {
       return apiError("Your email has not been confirmed yet. Open the newest confirmation email and try again.", 401, "EMAIL_NOT_CONFIRMED");
     }
+    // Rotate the refresh token and confirm both tokens belong to the same user.
+    const refreshedResponse = await supabaseFetch(env, "/auth/v1/token?grant_type=refresh_token", {
+      method: "POST",
+      body: JSON.stringify({ refresh_token: refreshToken }),
+    });
+    const refreshed = await refreshedResponse.json().catch(() => ({}));
+    if (!refreshedResponse.ok || refreshed?.user?.id !== user.id
+      || typeof refreshed.access_token !== "string" || typeof refreshed.refresh_token !== "string") {
+      return apiError("This confirmation link is invalid or expired. Request a new confirmation email.", 401, "INVALID_CONFIRMATION");
+    }
     return sessionJson(
       { user: { id: user.id, email: user.email || null } },
-      sessionHeaders(accessToken, refreshToken, 3600),
+      sessionHeaders(refreshed.access_token, refreshed.refresh_token, refreshed.expires_in),
     );
   }
 
