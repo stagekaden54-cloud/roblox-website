@@ -74,6 +74,39 @@ test('genre selection, sorting, and reset stay in sync', async ({ page }) => {
     .toHaveAttribute('aria-pressed', 'false');
 });
 
+test('Catalog page renders legacy categories and local category selection works', async ({ page }) => {
+  const pageErrors = [];
+  page.on('pageerror', error => pageErrors.push(error.message));
+
+  await page.goto('/catalog.html');
+  await expect(page).toHaveTitle('BLOCK16 — Catalog');
+  await expect(page.getByRole('heading', { name: 'Catalog', exact: true })).toBeVisible();
+  await expect(page.locator('.catalog-category')).toHaveCount(9);
+  await expect(page.getByRole('heading', { name: 'Avatar Items' })).toBeVisible();
+
+  await page.getByRole('button', { name: 'Hat' }).click();
+  await expect(page.locator('#selectedCategoryTitle')).toHaveText('Hat');
+  await expect(page.locator('#catalogStatus')).toContainText('Hat selected');
+
+  await page.getByRole('searchbox', { name: 'Find a category' }).fill('shirt');
+  await expect(page.locator('.catalog-category')).toHaveCount(2);
+  await expect(page.locator('#catalogEmpty')).toBeHidden();
+
+  await page.locator('#catalogReset').click();
+  await expect(page.locator('.catalog-category')).toHaveCount(9);
+  await expect(page.locator('#catalogSelection')).toBeHidden();
+  expect(pageErrors).toEqual([]);
+});
+
+test('Catalog navigation is linked from the homepage and Games page', async ({ page }) => {
+  for (const path of ['/', '/games.html', '/catalog.html']) {
+    await page.goto(path);
+    await page.getByRole('link', { name: 'Catalog' }).click();
+    await expect(page).toHaveURL(/\/catalog\.html$/);
+    await expect(page).toHaveTitle('BLOCK16 — Catalog');
+  }
+});
+
 test('archive gallery renders all three source-labelled images', async ({ page }) => {
   await page.goto('/games.html');
 

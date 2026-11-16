@@ -36,3 +36,11 @@ Set the Vercel project's Root Directory to `vercel-frontend`. No framework or bu
 - Crossroads and Swordfight are the only entries currently present in the static preview and are labeled Classic. Other genres correctly show an empty-state message until real game records are supplied.
 - Sorting is explicitly limited to name A–Z / Z–A. The 2016 GamesListBehavior.js and GamesPageContainerBehavior.js depend on server-rendered /games/moreresultscached and /games/moreresultsuncached responses plus legacy filter state; those endpoints are not called or copied into this static page.
 - Live popularity, ratings, time windows, search across the full catalogue, pagination, and game launch remain backend responsibilities. No fake ratings, play counts, game IDs, or endpoints are introduced.
+
+
+## Static legacy catalog preview
+- `catalog.html` restores a dedicated catalog page using the legacy two-column browse layout as a reference: category navigation at the side and a category grid in the content area. The implementation adapts the old layout patterns and does not copy the legacy Catalog.new.CSS wholesale (that source file explicitly says not to copy it).
+- Nine category tiles use matching, verified images from `2016/Website/Images/AssetIcons`: Hat, Face, Head, Shirt, Pants, T-Shirt, Decal, Model, and Classic. The page groups these as Avatar Items, Community Items, and Other for browsing.
+- Category selection, category search, and reset work locally in `catalog.js`. The selected category displays a short neutral description and clearly states that real listings are not connected.
+- The source repository does not provide a verified static catalog inventory suitable for this Vercel page. No item names, creator identities, prices, Robux balances, limited-item claims, ratings, purchase controls, or inventory data are invented. Search and purchases remain backend work.
+- The homepage and Games page Catalog navigation now point to `/catalog.html`; other unfinished navigation and account actions remain disabled.

@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Browse verified legacy BLOCK16 catalog categories in a static preview.">
+  <meta name="theme-color" content="#114081">
+  <title>BLOCK16 — Catalog</title>
+  <link rel="icon" href="/assets/block16-icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/catalog.css">
+</head>
+<body>
+  <header id="header">
+    <div class="legacy-header-inner">
+      <a id="logo" href="/" aria-label="BLOCK16 home"><img src="/assets/block16-logo.svg" alt="BLOCK16"></a>
+      <nav class="legacy-navigation" aria-label="Main navigation">
+        <ul class="legacy-navigation-list">
+          <li><a href="#" aria-disabled="true" data-inactive-link>My Block16</a></li>
+          <li><a href="/games.html">Games</a></li>
+          <li class="current"><a href="/catalog.html" aria-current="page">Catalog</a></li>
+          <li><a href="#" aria-disabled="true" data-inactive-link>Build</a></li>
+          <li><a href="#" aria-disabled="true" data-inactive-link>Membership</a></li>
+          <li><a href="#" aria-disabled="true" data-inactive-link>Forum</a></li>
+          <li class="legacy-more" id="legacyMore">
+            <button type="button" class="legacy-more-toggle" aria-expanded="false" aria-controls="legacyMoreMenu">More <span class="legacy-arrow" aria-hidden="true"></span></button>
+            <ul class="legacy-dropdown" id="legacyMoreMenu" hidden>
+              <li><a href="#" aria-disabled="true" data-inactive-link>Browse</a></li>
+              <li><a href="#" aria-disabled="true" data-inactive-link>Contests</a></li>
+              <li><a href="#" aria-disabled="true" data-inactive-link>News</a></li>
+              <li><a href="#" aria-disabled="true" data-inactive-link>Help</a></li>
+            </ul>
+          </li>
+        </ul>
+      </nav>
+      <div id="login"><span id="loginButton" aria-disabled="true" title="Account services are not connected yet">Login</span></div>
+    </div>
+  </header>
+
+  <main class="catalog-page" id="catalog">
+    <p class="catalog-notice">Catalog preview — category artwork and labels are sourced from the legacy repository. Actual item listings, creators, prices, inventory, and purchasing require the separate backend.</p>
+    <div class="catalog-title-row">
+      <div>
+        <h1>Catalog</h1>
+        <p>Browse classic catalog categories</p>
+      </div>
+      <a class="catalog-back-link" href="/games.html">← Back to Games</a>
+    </div>
+
+    <div class="catalog-layout">
+      <aside class="catalog-sidebar" aria-label="Catalog category navigation">
+        <h2>Browse</h2>
+        <ul>
+          <li><a href="#avatar-items">Avatar Items</a></li>
+          <li><a href="#community-items">Community Items</a></li>
+          <li><a href="#other-items">Other</a></li>
+        </ul>
+        <p class="catalog-sidebar-note">Choose a category to view its status in this preview.</p>
+      </aside>
+
+      <section class="catalog-content" aria-label="Catalog categories">
+        <div class="catalog-toolbar">
+          <label for="catalogSearch">Find a category
+            <input id="catalogSearch" type="search" placeholder="Search categories" autocomplete="off">
+          </label>
+          <button id="catalogReset" type="button" class="catalog-reset">Reset</button>
+        </div>
+
+        <section class="catalog-group" id="avatar-items" aria-labelledby="avatarItemsTitle">
+          <h2 id="avatarItemsTitle">Avatar Items</h2>
+          <div class="catalog-category-grid" id="avatarCategoryGrid"></div>
+        </section>
+        <section class="catalog-group" id="community-items" aria-labelledby="communityItemsTitle">
+          <h2 id="communityItemsTitle">Community Items</h2>
+          <div class="catalog-category-grid" id="communityCategoryGrid"></div>
+        </section>
+        <section class="catalog-group" id="other-items" aria-labelledby="otherItemsTitle">
+          <h2 id="otherItemsTitle">Other</h2>
+          <div class="catalog-category-grid" id="otherCategoryGrid"></div>
+        </section>
+
+        <p id="catalogStatus" class="catalog-status" role="status" aria-live="polite">Select a category to see its preview status.</p>
+        <p id="catalogEmpty" class="catalog-empty" hidden>No categories match that search. Try another term or reset the search.</p>
+        <section id="catalogSelection" class="catalog-selection" aria-live="polite" hidden>
+          <h2 id="selectedCategoryTitle"></h2>
+          <p id="selectedCategoryDescription"></p>
+          <p class="catalog-backend-note">No item listings are included yet. This category is ready to connect to verified catalog records when the backend is available.</p>
+        </section>
+      </section>
+    </div>
+  </main>
+
+  <footer id="footer">
+    BLOCK16 — independent classic-era revival project.
+    <a href="https://github.com/stagekaden54-cloud/roblox-website" target="_blank" rel="noopener noreferrer">View source</a>
+    <p class="static-note">Static catalog preview. Category browsing works locally; listings, prices, creator details, account inventory, and purchases are not connected.</p>
+  </footer>
+  <script src="/catalog.js" defer></script>
+  <script>
+    (() => {
+      const menu = document.getElementById('legacyMore');
+      const toggle = menu.querySelector('.legacy-more-toggle');
+      const dropdown = document.getElementById('legacyMoreMenu');
+      toggle.addEventListener('click', () => {
+        const open = toggle.getAttribute('aria-expanded') !== 'true';
+        toggle.setAttribute('aria-expanded', String(open));
+        dropdown.hidden = !open;
+        menu.classList.toggle('active', open);
+      });
+      document.addEventListener('click', (event) => {
+        if (!menu.contains(event.target)) {
+          toggle.setAttribute('aria-expanded', 'false');
+          dropdown.hidden = true;
+          menu.classList.remove('active');
+        }
+      });
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+          toggle.setAttribute('aria-expanded', 'false');
+          dropdown.hidden = true;
+          menu.classList.remove('active');
+          toggle.focus();
+        }
+      });
+      document.querySelectorAll('[data-inactive-link]').forEach((link) => {
+        link.addEventListener('click', (event) => event.preventDefault());
+      });
+    })();
+  </script>
+</body>
+</html>
