@@ -132,7 +132,8 @@ async function handleAuth(request, env, path) {
       return apiError("Display name must be between 1 and 40 characters.");
     }
 
-    const response = await supabaseFetch(env, "/auth/v1/signup", {
+    const redirectTo = new URLSearchParams({ redirect_to: "https://block16.stagekaden54.workers.dev/account" });
+    const response = await supabaseFetch(env, `/auth/v1/signup?${redirectTo}`, {
       method: "POST",
       body: JSON.stringify({
         email: email.trim(),
@@ -144,6 +145,36 @@ async function handleAuth(request, env, path) {
     if (result.response) return result.response;
     const sessionCreated = Boolean(result.body?.access_token);
     return sessionJson({ user: result.body?.user ? { id: result.body.user.id, email: result.body.user.email } : null, email_confirmation_required: !sessionCreated }, sessionCreated ? sessionHeaders(result.body.access_token, result.body.refresh_token, result.body.expires_in) : [], sessionCreated ? 201 : 202);
+  }
+
+  if (path === "/api/v1/auth/confirm" && request.method === "POST") {
+    let body;
+    try { body = await readJson(request, 8_192); } catch (error) {
+      return error.message === "REQUEST_TOO_LARGE"
+        ? apiError("Request body is too large.", 413, "REQUEST_TOO_LARGE")
+        : apiError("Send a valid JSON request.", 400, "INVALID_JSON");
+    }
+    const accessToken = body?.access_token;
+    const refreshToken = body?.refresh_token;
+    if (typeof accessToken !== "string" || accessToken.length < 20 || accessToken.length > 8_192
+      || typeof refreshToken !== "string" || refreshToken.length < 10 || refreshToken.length > 2_048) {
+      return apiError("The confirmation link is invalid or incomplete. Request a new confirmation email.", 400, "INVALID_CONFIRMATION");
+    }
+
+    const response = await supabaseFetch(env, "/auth/v1/user", {
+      headers: { authorization: `Bearer ${accessToken}` },
+    });
+    if (!response.ok) {
+      return apiError("This confirmation link is invalid or expired. Request a new confirmation email.", 401, "INVALID_CONFIRMATION");
+    }
+    const user = await response.json().catch(() => null);
+    if (!user?.id || !(user.email_confirmed_at || user.confirmed_at)) {
+      return apiError("Your email has not been confirmed yet. Open the newest confirmation email and try again.", 401, "EMAIL_NOT_CONFIRMED");
+    }
+    return sessionJson(
+      { user: { id: user.id, email: user.email || null } },
+      sessionHeaders(accessToken, refreshToken, 3600),
+    );
   }
 
   if (path === "/api/v1/auth/login" && request.method === "POST") {
