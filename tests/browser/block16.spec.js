@@ -228,11 +228,11 @@ test('email confirmation hash is exchanged for a BLOCK16 session and removed fro
     })
   }));
 
-  await page.goto('/account#access_token=test-access-token-value&refresh_token=test-refresh-token-value&type=signup');
+  await page.goto('/account.html#access_token=test-access-token-value&refresh_token=test-refresh-token-value&type=signup');
   await expect(page.locator('#profile')).toBeVisible();
   await expect(page.locator('#notice')).toHaveText('Email confirmed — you are now signed in.');
   await expect(page.locator('#profileEmail')).toHaveText('verified@example.com');
-  await expect(page).toHaveURL(/\/account$/);
+  await expect(page).toHaveURL(/\/account\.html$/);
   expect(confirmationPayload).toEqual({
     access_token: 'test-access-token-value',
     refresh_token: 'test-refresh-token-value'
@@ -245,9 +245,9 @@ test('account page does not send incomplete confirmation fragments to the API', 
     confirmationRequests += 1;
     return route.fulfill({ status: 400, contentType: 'application/json', body: '{}' });
   });
-  await page.goto('/account#access_token=only-an-access-token&type=signup');
+  await page.goto('/account.html#access_token=only-an-access-token&type=signup');
   await expect(page.locator('#login')).toBeVisible();
   await expect(page.locator('#notice')).toContainText('incomplete or unsupported');
-  await expect(page).toHaveURL(/\/account$/);
+  await expect(page).toHaveURL(/\/account\.html$/);
   expect(confirmationRequests).toBe(0);
 });
