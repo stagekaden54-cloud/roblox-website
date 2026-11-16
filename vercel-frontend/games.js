@@ -32,8 +32,8 @@
   // The two preview entries are intentionally limited to games already
   // represented by verified legacy artwork on this page.
   const games = [
-    { name: 'Crossroads', genre: 'Classic', artClass: 'crossroads-art' },
-    { name: 'Swordfight', genre: 'Classic', artClass: 'swordfight-art' }
+    { id: 'crossroads', name: 'Crossroads', genre: 'Classic', artClass: 'crossroads-art' },
+    { id: 'swordfight', name: 'Swordfight', genre: 'Classic', artClass: 'swordfight-art' }
   ];
 
   const genreSelect = document.getElementById('genreFilter');
@@ -97,15 +97,12 @@
 
       const art = document.createElement('a');
       art.className = 'legacy-game-art ' + game.artClass;
-      art.href = '#';
-      art.setAttribute('aria-disabled', 'true');
-      art.setAttribute('data-inactive-link', '');
-      art.setAttribute('aria-label', game.name + ' — game launching is not connected');
+      art.href = '/game.html?id=' + encodeURIComponent(game.id);
+      art.setAttribute('aria-label', 'View details for ' + game.name);
       const hiddenName = document.createElement('span');
       hiddenName.className = 'visually-hidden';
-      hiddenName.textContent = game.name;
+      hiddenName.textContent = 'View details for ' + game.name;
       art.append(hiddenName);
-      art.addEventListener('click', (event) => event.preventDefault());
 
       const heading = document.createElement('h2');
       heading.textContent = game.name;
