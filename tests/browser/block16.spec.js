@@ -209,3 +209,45 @@ test('Original artwork preview stays within the viewport on desktop and mobile',
     document.documentElement.scrollWidth <= document.documentElement.clientWidth
   )).toBe(true);
 });
+
+
+test('email confirmation hash is exchanged for a BLOCK16 session and removed from the URL', async ({ page }) => {
+  let confirmationPayload;
+  await page.route('**/api/v1/auth/confirm', async route => {
+    confirmationPayload = route.request().postDataJSON();
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({
+      user: { id: 'verified-user', email: 'verified@example.com' }
+    }) });
+  });
+  await page.route('**/api/v1/me', route => route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({
+      user: { id: 'verified-user', email: 'verified@example.com' },
+      profile: { username: 'verified_player', display_name: 'Verified Player', bio: '' }
+    })
+  }));
+
+  await page.goto('/account#access_token=test-access-token-value&refresh_token=test-refresh-token-value&type=signup');
+  await expect(page.locator('#profile')).toBeVisible();
+  await expect(page.locator('#notice')).toHaveText('Email confirmed — you are now signed in.');
+  await expect(page.locator('#profileEmail')).toHaveText('verified@example.com');
+  await expect(page).toHaveURL(/\/account$/);
+  expect(confirmationPayload).toEqual({
+    access_token: 'test-access-token-value',
+    refresh_token: 'test-refresh-token-value'
+  });
+});
+
+test('account page does not send incomplete confirmation fragments to the API', async ({ page }) => {
+  let confirmationRequests = 0;
+  await page.route('**/api/v1/auth/confirm', route => {
+    confirmationRequests += 1;
+    return route.fulfill({ status: 400, contentType: 'application/json', body: '{}' });
+  });
+  await page.goto('/account#access_token=only-an-access-token&type=signup');
+  await expect(page.locator('#login')).toBeVisible();
+  await expect(page.locator('#notice')).toContainText('incomplete or unsupported');
+  await expect(page).toHaveURL(/\/account$/);
+  expect(confirmationRequests).toBe(0);
+});
