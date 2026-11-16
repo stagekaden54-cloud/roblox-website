@@ -171,3 +171,41 @@ test('Membership layout does not overflow at desktop and mobile sizes', async ({
     document.documentElement.scrollWidth <= document.documentElement.clientWidth
   )).toBe(true);
 });
+
+test('Original BLOCK16 artwork preview renders three independent SVG assets', async ({ page }) => {
+  const pageErrors = [];
+  page.on('pageerror', error => pageErrors.push(error.message));
+
+  await page.goto('/brand-artwork.html');
+  await expect(page).toHaveTitle('BLOCK16 — Original Artwork');
+  await expect(page.getByRole('heading', { name: 'BLOCK16 Original Artwork' })).toBeVisible();
+  await expect(page.locator('.brand-card')).toHaveCount(3);
+  await expect(page.locator('.brand-status')).toContainText('No AI-generated images');
+
+  const sources = await page.locator('.brand-card img').evaluateAll(images =>
+    images.map(image => image.getAttribute('src'))
+  );
+  expect(sources).toEqual([
+    '/assets/block16-original-mark.svg',
+    '/assets/block16-original-icon.svg',
+    '/assets/block16-original-builder-badge.svg'
+  ]);
+
+  for (const image of await page.locator('.brand-card img').all()) {
+    await expect(image).toHaveJSProperty('complete', true);
+    await expect.poll(() => image.evaluate(node => node.naturalWidth)).toBeGreaterThan(0);
+  }
+  expect(pageErrors).toEqual([]);
+});
+
+test('Original artwork preview stays within the viewport on desktop and mobile', async ({ page }) => {
+  await page.goto('/brand-artwork.html');
+  await expect.poll(() => page.evaluate(() =>
+    document.documentElement.scrollWidth <= document.documentElement.clientWidth
+  )).toBe(true);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect.poll(() => page.evaluate(() =>
+    document.documentElement.scrollWidth <= document.documentElement.clientWidth
+  )).toBe(true);
+});
