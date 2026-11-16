@@ -74,3 +74,28 @@ test("published games endpoint reads only published catalogue records", async ()
     globalThis.fetch = originalFetch;
   }
 });
+
+
+test("successful registration stores Supabase tokens in HttpOnly cookies, not JSON", async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => Response.json({
+    user: { id: "user-1", email: "player@example.com" },
+    access_token: "access-secret",
+    refresh_token: "refresh-secret",
+    expires_in: 3600,
+  }, { status: 200 });
+  try {
+    const response = await worker.fetch(new Request("https://block16.test/api/v1/auth/register", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ email: "player@example.com", password: "password123", username: "player_123" }),
+    }), env);
+    assert.equal(response.status, 201);
+    const body = await response.json();
+    assert.equal(body.session, undefined);
+    assert.equal(JSON.stringify(body).includes("access-secret"), false);
+    assert.match(response.headers.get("set-cookie") || "", /b16_access=access-secret/);
+    assert.match(response.headers.get("set-cookie") || "", /HttpOnly/);
+    assert.match(response.headers.get("set-cookie") || "", /SameSite=Lax/);
+  } finally { globalThis.fetch = originalFetch; }
+});
