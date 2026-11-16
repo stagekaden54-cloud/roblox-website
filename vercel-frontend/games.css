@@ -1,0 +1,23 @@
+/* Static catalogue presentation adapted from Website/CSS/Base/CSS/LandingGames.css. */
+.games-catalogue{max-width:990px;width:calc(100% - 24px);margin:18px auto 0;padding:0 10px;box-sizing:border-box}
+.catalogue-notice{margin:0 0 16px;padding:8px 10px;background:#eaf1f8;border:1px solid #c5d5e6;color:#315d87;font-size:12px;line-height:1.45}
+.catalogue-heading{margin:0 0 14px;padding-bottom:8px;border-bottom:1px solid #b7c9dc}
+.catalogue-heading h1{margin:0;color:#24384e;font-size:24px}
+.catalogue-heading p{margin:4px 0 0;color:#58718b;font-size:13px}
+.legacy-game-grid{display:flex;flex-wrap:wrap;gap:18px;align-items:flex-start}
+.legacy-game-card{width:330px;max-width:100%;margin:0}
+.legacy-game-card h2{margin:7px 0 0;color:#315d87;font-size:15px;font-weight:600}
+.legacy-game-art{display:block;width:330px;max-width:100%;height:298px;background-repeat:no-repeat;background-position:bottom center;cursor:default}
+.crossroads-art{background-image:url("https://raw.githubusercontent.com/stagekaden54-cloud/roblox-website/2016/Website/Images/LandingGames/crossroads.gif")}
+.swordfight-art{width:300px;background-image:url("https://raw.githubusercontent.com/stagekaden54-cloud/roblox-website/2016/Website/Images/LandingGames/swordfight.gif")}
+.catalogue-more-art{width:330px;max-width:100%;height:298px;margin-top:18px;background:url("https://raw.githubusercontent.com/stagekaden54-cloud/roblox-website/2016/Website/Images/LandingGames/seeMoreGames.gif") bottom center/auto 200% no-repeat}
+.visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.legacy-navigation-list>li.current{background:#285b91}
+@media(max-width:700px){
+ .games-catalogue{width:100%;margin-top:10px;padding:0 10px}
+ .legacy-game-grid{flex-direction:column;align-items:center;gap:14px}
+ .legacy-game-card{width:min(100%,330px)}
+ .legacy-game-art{width:100%;height:auto;aspect-ratio:330 / 298;background-size:100% 200%}
+ .swordfight-art{aspect-ratio:300 / 298}
+ .catalogue-more-art{height:auto;aspect-ratio:330 / 298;background-size:100% 200%;margin:14px auto 0}
+}
