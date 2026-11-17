@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="BLOCK16 player profile preview.">
+  <meta name="theme-color" content="#114081">
+  <title>BLOCK16 — Player Profile</title>
+  <link rel="icon" href="/assets/block16-icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/site-shell.css">
+  <link rel="stylesheet" href="/profile.css">
+  <script src="/site-shell.js" defer></script>
+  <script src="/profile.js" defer></script>
+</head>
+<body>
+  <header id="header" data-site-header></header>
+  <main class="profile-page">
+    <p class="profile-notice">Player profile preview. Profile details, friends, badges, and creations will appear when public player data is connected.</p>
+    <section class="profile-banner" aria-label="Player profile">
+      <div class="profile-avatar" aria-hidden="true"><span>?</span></div>
+      <div class="profile-heading"><p class="eyebrow">BLOCK16 PLAYER</p><h1>Player profile</h1><p class="profile-handle">No player selected</p></div>
+    </section>
+    <nav class="profile-tabs" aria-label="Profile sections">
+      <button type="button" class="active" aria-selected="true" data-profile-tab="about">About</button>
+      <button type="button" aria-selected="false" data-profile-tab="creations">Creations</button>
+      <button type="button" aria-selected="false" data-profile-tab="favorites">Favorites</button>
+      <button type="button" aria-selected="false" data-profile-tab="friends">Friends</button>
+    </nav>
+    <section class="profile-content" data-profile-panel="about"><h2>About</h2><p class="profile-empty">There is no public player profile to display yet.</p></section>
+    <section class="profile-content" data-profile-panel="creations" hidden><h2>Creations</h2><p class="profile-empty">Player creations are not connected yet.</p></section>
+    <section class="profile-content" data-profile-panel="favorites" hidden><h2>Favorites</h2><p class="profile-empty">Favorite games are not connected yet.</p></section>
+    <section class="profile-content" data-profile-panel="friends" hidden><h2>Friends</h2><p class="profile-empty">Friend lists are not connected yet.</p></section>
+    <p class="profile-account-link"><a href="/account.html">Open account settings</a></p>
+  </main>
+  <footer id="footer">BLOCK16 — independent classic-era revival project.</footer>
+</body>
+</html>

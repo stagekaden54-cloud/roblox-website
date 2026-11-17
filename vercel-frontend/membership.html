@@ -9,33 +9,11 @@
   <link rel="icon" href="/assets/block16-icon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/styles.css">
   <link rel="stylesheet" href="/membership.css">
+  <link rel="stylesheet" href="/site-shell.css">
+  <script src="/site-shell.js" defer></script>
 </head>
 <body>
-  <header id="header">
-    <div class="legacy-header-inner">
-      <a id="logo" href="/" aria-label="BLOCK16 home"><img src="/assets/block16-logo.svg" alt="BLOCK16"></a>
-      <nav class="legacy-navigation" aria-label="Main navigation">
-        <ul class="legacy-navigation-list">
-          <li><a href="#" aria-disabled="true" data-inactive-link>My Block16</a></li>
-          <li><a href="/games.html">Games</a></li>
-          <li><a href="/catalog.html">Catalog</a></li>
-          <li><a href="#" aria-disabled="true" data-inactive-link>Build</a></li>
-          <li class="current"><a href="/membership.html" aria-current="page">Membership</a></li>
-          <li><a href="#" aria-disabled="true" data-inactive-link>Forum</a></li>
-          <li class="legacy-more" id="legacyMore">
-            <button type="button" class="legacy-more-toggle" aria-expanded="false" aria-controls="legacyMoreMenu">More <span class="legacy-arrow" aria-hidden="true"></span></button>
-            <ul class="legacy-dropdown" id="legacyMoreMenu" hidden>
-              <li><a href="#" aria-disabled="true" data-inactive-link>Browse</a></li>
-              <li><a href="#" aria-disabled="true" data-inactive-link>Contests</a></li>
-              <li><a href="#" aria-disabled="true" data-inactive-link>News</a></li>
-              <li><a href="#" aria-disabled="true" data-inactive-link>Help</a></li>
-            </ul>
-          </li>
-        </ul>
-      </nav>
-      <div id="login"><a id="loginButton" href="/account.html">Sign up / Log in</a></div>
-    </div>
-  </header>
+  <header id="header" data-site-header></header>
 
   <main class="membership-page">
     <p class="membership-notice">Concept preview — membership is not active. There are no available plans, prices, paid benefits, or purchase actions.</p>
@@ -84,36 +62,6 @@
     <a href="https://github.com/stagekaden54-cloud/roblox-website" target="_blank" rel="noopener noreferrer">View source</a>
     <p class="static-note">Static design preview. No account, billing, subscription, or purchase service is connected.</p>
   </footer>
-  <script>
-    (() => {
-      const menu = document.getElementById('legacyMore');
-      const toggle = menu.querySelector('.legacy-more-toggle');
-      const dropdown = document.getElementById('legacyMoreMenu');
-      toggle.addEventListener('click', () => {
-        const open = toggle.getAttribute('aria-expanded') !== 'true';
-        toggle.setAttribute('aria-expanded', String(open));
-        dropdown.hidden = !open;
-        menu.classList.toggle('active', open);
-      });
-      document.addEventListener('click', (event) => {
-        if (!menu.contains(event.target)) {
-          toggle.setAttribute('aria-expanded', 'false');
-          dropdown.hidden = true;
-          menu.classList.remove('active');
-        }
-      });
-      document.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape') {
-          toggle.setAttribute('aria-expanded', 'false');
-          dropdown.hidden = true;
-          menu.classList.remove('active');
-          toggle.focus();
-        }
-      });
-      document.querySelectorAll('[data-inactive-link]').forEach((link) => {
-        link.addEventListener('click', (event) => event.preventDefault());
-      });
-    })();
-  </script>
+  
 </body>
 </html>
