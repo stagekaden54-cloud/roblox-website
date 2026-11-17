@@ -8,8 +8,16 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: { code: "METHOD_NOT_ALLOWED", message: "Method not allowed." } });
   }
 
+  // Vercel normally supplies catch-all segments in req.query.path. Derive
+  // from the request URL as a fallback so routing still works when that
+  // query field is absent or represented differently by a preview deployment.
   const pathValue = req.query?.path;
-  const path = Array.isArray(pathValue) ? pathValue.join("/") : String(pathValue || "");
+  const queryPath = Array.isArray(pathValue) ? pathValue.join("/") : String(pathValue || "");
+  const pathname = new URL(req.url || "/", "https://vercel.invalid").pathname;
+  const urlPath = pathname.startsWith("/api/v2/auth/")
+    ? pathname.slice("/api/v2/auth/".length)
+    : "";
+  const path = queryPath || urlPath;
   if (!ALLOWED_PATHS.has(path)) {
     return res.status(404).json({ error: { code: "NOT_FOUND", message: "API route not found." } });
   }
