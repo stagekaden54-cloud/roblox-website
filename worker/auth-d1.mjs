@@ -69,10 +69,13 @@ async function readBody(request) {
   if (new TextEncoder().encode(raw).byteLength > 8_192) throw new Error("too_large");
   try { return JSON.parse(raw); } catch { throw new Error("invalid_json"); }
 }
-function sameOrigin(request) {
+function sameOrigin(request, env) {
   const origin = request.headers.get("origin");
   const fetchSite = request.headers.get("sec-fetch-site");
-  return origin === new URL(request.url).origin && (!fetchSite || fetchSite === "same-origin" || fetchSite === "none");
+  const requestOrigin = new URL(request.url).origin;
+  const trustedOrigin = typeof env.ALLOWED_ORIGIN === "string" ? env.ALLOWED_ORIGIN : "";
+  const originIsTrusted = origin === requestOrigin || (trustedOrigin && origin === trustedOrigin);
+  return Boolean(originIsTrusted) && (!fetchSite || fetchSite === "same-origin" || fetchSite === "none");
 }
 async function rateLimit(db, request, action, limit, windowSeconds) {
   const ip = request.headers.get("cf-connecting-ip") || "unknown";
@@ -230,7 +233,7 @@ export async function handleD1Auth(request, env, path) {
   if (!env.DB) return fail("BLOCK16 username accounts are not configured yet.", 503, "D1_NOT_CONFIGURED");
   if (path === "/api/v2/auth/me" && request.method === "GET") return me(env.DB, request);
   if (!["POST"].includes(request.method)) return fail("Method not allowed.", 405, "METHOD_NOT_ALLOWED");
-  if (!sameOrigin(request)) return fail("This request must come from the BLOCK16 website.", 403, "CROSS_SITE_REQUEST");
+  if (!sameOrigin(request, env)) return fail("This request must come from the BLOCK16 website.", 403, "CROSS_SITE_REQUEST");
   let body;
   try { body = await readBody(request); }
   catch (error) {
