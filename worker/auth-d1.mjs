@@ -127,7 +127,7 @@ function generateRecoveryCodes() {
 async function register(db, request, body) {
   if (!(await rateLimit(db, request, "register", 5, 3600))) return fail("Too many registration attempts. Please try again later.", 429, "RATE_LIMITED");
   const username = typeof body.username === "string" ? body.username.trim() : "";
-  const email = body.email === undefined || body.email === null ? "" : body.email.trim();
+  const email = body.email === undefined || body.email === null ? "" : (typeof body.email === "string" ? body.email.trim() : body.email);
   const password = body.password;
   const displayName = typeof body.display_name === "string" && body.display_name.trim()
     ? body.display_name.trim() : username;
