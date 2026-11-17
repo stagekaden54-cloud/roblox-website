@@ -9,8 +9,8 @@ const JSON_HEADERS = {
 function json(data, status = 200, headers = {}) {
   return new Response(JSON.stringify(data), { status, headers: { ...JSON_HEADERS, ...headers } });
 }
-function fail(message, status = 400, code = "BAD_REQUEST") {
-  return json({ error: { code, message } }, status);
+function fail(message, status = 400, code = "BAD_REQUEST", headers = {}) {
+  return json({ error: { code, message } }, status, headers);
 }
 function bytesToHex(bytes) {
   return Array.from(new Uint8Array(bytes), value => value.toString(16).padStart(2, "0")).join("");
