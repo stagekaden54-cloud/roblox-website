@@ -16,7 +16,7 @@
 .legacy-dropdown li{display:block;padding:0}
 .legacy-dropdown a{display:block;min-height:0;padding:7px 12px;color:#26384a;font:13px Arial,Helvetica,sans-serif}
 .legacy-dropdown a:hover{background:#dce8f4}
-#login{flex:0 0 auto;margin:0 8px 0 0}
+#account-navigation{flex:0 0 auto;margin:0 8px 0 0}
 #loginButton{display:inline-block;padding:7px 10px;border:1px solid #d6e4f1;background:linear-gradient(#fff,#e4edf5);color:#24527d;font:bold 12px Arial,Helvetica,sans-serif;text-decoration:none;white-space:nowrap}
 #loginButton:hover{background:#fff}
 @media(max-width:760px){

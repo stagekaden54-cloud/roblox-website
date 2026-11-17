@@ -22,7 +22,7 @@
     links.map(item).join('')+
     '<li class="legacy-more" id="legacyMore"><button type="button" class="legacy-more-toggle" aria-expanded="false" aria-controls="legacyMoreMenu">More <span class="legacy-arrow" aria-hidden="true"></span></button>'+
     '<ul class="legacy-dropdown" id="legacyMoreMenu" hidden><li><a href="/games.html">Browse games</a></li><li><a href="/catalog.html">Browse catalog</a></li><li><a href="#" aria-disabled="true" data-inactive-link>Contests</a></li><li><a href="#" aria-disabled="true" data-inactive-link>News</a></li><li><a href="#" aria-disabled="true" data-inactive-link>Help</a></li></ul></li>'+
-    '</ul></nav><div id="login"><a id="loginButton" href="/account.html">Account</a></div></div>';
+    '</ul></nav><div id="account-navigation"><a id="loginButton" href="/account.html">Account</a></div></div>';
   const menu = mount.querySelector('#legacyMore');
   const toggle = mount.querySelector('.legacy-more-toggle');
   const dropdown = mount.querySelector('#legacyMoreMenu');
