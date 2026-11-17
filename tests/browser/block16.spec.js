@@ -1,10 +1,18 @@
 const { test, expect } = require('@playwright/test');
 
+async function openMobileNavigation(page) {
+  const toggle = page.locator('#mobileNavigationToggle');
+  if (await toggle.isVisible() && await toggle.getAttribute('aria-expanded') !== 'true') {
+    await toggle.click();
+  }
+}
+
 test('homepage has its own title and renders the legacy landing area', async ({ page }) => {
   const pageErrors = [];
   page.on('pageerror', error => pageErrors.push(error.message));
 
   await page.goto('/');
+  await openMobileNavigation(page);
   await expect(page).toHaveTitle('BLOCK16 — Home');
   await expect(page.getByRole('navigation', { name: 'Main navigation' })).toBeVisible();
   await expect(page.locator('.legacy-games')).toBeVisible();
@@ -14,6 +22,7 @@ test('homepage has its own title and renders the legacy landing area', async ({ 
 
 test('More navigation opens, closes, and supports Escape', async ({ page }) => {
   await page.goto('/');
+  await openMobileNavigation(page);
 
   const toggle = page.getByRole('button', { name: 'More' });
   const menu = page.locator('#legacyMoreMenu');
@@ -101,6 +110,7 @@ test('Catalog page renders legacy categories and local category selection works'
 test('Catalog navigation is linked from the homepage and Games page', async ({ page }) => {
   for (const path of ['/', '/games.html', '/catalog.html']) {
     await page.goto(path);
+    await openMobileNavigation(page);
     await page.getByRole('link', { name: 'Catalog' }).click();
     await expect(page).toHaveURL(/\/catalog\.html$/);
     await expect(page).toHaveTitle('BLOCK16 — Catalog');
@@ -137,6 +147,7 @@ test('Membership page uses modified legacy artwork and clearly disables purchase
   page.on('pageerror', error => pageErrors.push(error.message));
 
   await page.goto('/membership.html');
+  await openMobileNavigation(page);
   await expect(page).toHaveTitle('BLOCK16 — Membership');
   await expect(page.getByRole('heading', { name: 'BLOCK16 Membership' })).toBeVisible();
   await expect(page.locator('.membership-art-card')).toHaveCount(3);
@@ -159,6 +170,7 @@ test('Membership page uses modified legacy artwork and clearly disables purchase
 test('Membership navigation is linked from all existing static pages', async ({ page }) => {
   for (const path of ['/', '/games.html', '/catalog.html', '/membership.html']) {
     await page.goto(path);
+    await openMobileNavigation(page);
     await page.getByRole('link', { name: 'Membership' }).click();
     await expect(page).toHaveURL(/\/membership\.html$/);
     await expect(page).toHaveTitle('BLOCK16 — Membership');
