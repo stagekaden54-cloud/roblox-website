@@ -33,9 +33,15 @@ test('More navigation opens, closes, and supports Escape', async ({ page }) => {
   await expect(menu).toBeVisible();
 
   await page.keyboard.press('Escape');
+  await expect(menu).toBeHidden();
+  await expect(page.locator('#mobileNavigationToggle')).toHaveAttribute('aria-expanded', 'false');
+  await expect(page.locator('#mobileNavigationToggle')).toBeFocused();
+
+  // Escape also closes the mobile navigation, so reopen it before
+  // checking the More control's collapsed state.
+  await openMobileNavigation(page);
   await expect(toggle).toHaveAttribute('aria-expanded', 'false');
   await expect(menu).toBeHidden();
-  await expect(toggle).toBeFocused();
 });
 
 test('Games page loads its catalogue and local search works', async ({ page }) => {
