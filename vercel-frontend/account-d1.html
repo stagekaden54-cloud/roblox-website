@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BLOCK16 — Username Accounts Preview</title>
+<link rel="stylesheet" href="/styles.css">
+<link rel="stylesheet" href="/site-shell.css">
+<script src="/site-shell.js" defer></script>
+<style>
+main{width:min(900px,calc(100% - 24px));margin:28px auto}.panel{background:#f4f7fb;border:1px solid #b7c9dc;padding:22px;color:#244d78}.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}.tabs button,.action{border:1px solid #285b8d;border-radius:3px;padding:10px 15px;background:#28669e;color:white;font-weight:bold}.tabs button[aria-selected=true]{background:#173f68}.form{max-width:520px}.form label{display:block;font-weight:bold;margin:13px 0 5px}.form input{box-sizing:border-box;width:100%;padding:11px;border:1px solid #9fb2c7;border-radius:3px;font:15px Arial}.form small{display:block;color:#526f8b;margin-top:5px}.action{margin-top:18px;cursor:pointer}.notice{padding:12px;background:#e6f0fa;border:1px solid #a9c2db;margin:12px 0}.error{background:#fff0f0;border-color:#d9aaaa;color:#812a2a}.codes{white-space:pre-wrap;overflow-wrap:anywhere;background:#fff;padding:14px;border:1px solid #a9c2db;font-family:monospace}.hidden{display:none!important}.muted{color:#526f8b}.warning{font-weight:bold;color:#8b4d12}
+</style>
+</head>
+<body>
+<header id="header" data-site-header></header>
+<main>
+<section class="panel">
+<h1>BLOCK16 Username Accounts</h1>
+<p class="muted">Development preview — this page uses the separate D1 account API and is not the live account flow yet.</p>
+<div id="notice" class="notice" role="status" hidden></div>
+<div id="account">
+<div class="tabs" role="tablist">
+<button type="button" id="signupTab" aria-selected="true">Create account</button>
+<button type="button" id="loginTab" aria-selected="false">Log in</button>
+<button type="button" id="recoverTab" aria-selected="false">Recover account</button>
+</div>
+<form id="signup" class="form">
+<h2>Create your BLOCK16 account</h2>
+<label for="username">Username</label><input id="username" autocomplete="username" minlength="3" maxlength="20" pattern="[A-Za-z0-9_]{3,20}" required>
+<small>3–20 letters, numbers, or underscores.</small>
+<label for="displayName">Display name (optional)</label><input id="displayName" maxlength="40">
+<label for="email">Email (optional)</label><input id="email" type="email" autocomplete="email">
+<small>You can leave this blank. No confirmation is required. Email is not currently used for password recovery; keep your recovery codes.</small>
+<label for="password">Password</label><input id="password" type="password" autocomplete="new-password" minlength="12" maxlength="128" required>
+<small>Use at least 12 characters.</small>
+<button class="action" type="submit">Create account</button>
+</form>
+<form id="login" class="form hidden">
+<h2>Welcome back</h2>
+<label for="loginUsername">Username</label><input id="loginUsername" autocomplete="username" required>
+<label for="loginPassword">Password</label><input id="loginPassword" type="password" autocomplete="current-password" required>
+<button class="action" type="submit">Log in</button>
+</form>
+<form id="recover" class="form hidden">
+<h2>Recover your account</h2>
+<p>Use one unused recovery code you saved when creating your account.</p>
+<label for="recoverUsername">Username</label><input id="recoverUsername" autocomplete="username" required>
+<label for="recoveryCode">Recovery code</label><input id="recoveryCode" autocomplete="off" required>
+<label for="newPassword">New password</label><input id="newPassword" type="password" autocomplete="new-password" minlength="12" maxlength="128" required>
+<button class="action" type="submit">Reset password</button>
+</form>
+<div id="recoveryCodes" class="hidden">
+<h2>Save your recovery codes</h2>
+<p class="warning">These are shown only once. Save them somewhere safe before leaving this page.</p>
+<pre id="codes" class="codes"></pre>
+<button id="copyCodes" type="button" class="action">Copy recovery codes</button>
+<button id="continue" type="button" class="action">I've saved them</button>
+</div>
+<div id="signedIn" class="hidden">
+<h2>You're signed in</h2><p id="profileName"></p>
+<button id="logout" class="action" type="button">Log out</button>
+</div>
+</div>
+</section>
+</main>
+<footer id="footer">BLOCK16 — independent classic-era revival project.</footer>
+<script>
+(() => {
+ const $ = id => document.getElementById(id);
+ const notice = $("notice");
+ let codesText = "";
+ let pendingProfile = null;
+ const forms = {signup:$("signup"),login:$("login"),recover:$("recover")};
+ function message(text, error=false){notice.textContent=text;notice.hidden=!text;notice.classList.toggle("error",error);}
+ function show(mode){
+  Object.entries(forms).forEach(([key,form])=>form.classList.toggle("hidden",key!==mode));
+  $("recoveryCodes").classList.add("hidden");$("signedIn").classList.add("hidden");
+  ["signup","login","recover"].forEach(key=>$ (key+"Tab").setAttribute("aria-selected",String(key===mode)));
+  message("");
+ }
+ async function api(path,body){
+  const response=await fetch(path,{method:body===undefined?"GET":"POST",credentials:"same-origin",headers:body===undefined?{}:{"content-type":"application/json"},body:body===undefined?undefined:JSON.stringify(body)});
+  const data=await response.json().catch(()=>({}));
+  if(!response.ok)throw new Error(data.error?.message||"Please try again.");
+  return data;
+ }
+ function signedIn(profile){
+  Object.values(forms).forEach(form=>form.classList.add("hidden"));
+  $("recoveryCodes").classList.add("hidden");$("signedIn").classList.remove("hidden");
+  $("signupTab").parentElement.classList.add("hidden");
+  $("profileName").textContent="Signed in as "+profile.username;
+  message("Your BLOCK16 account is signed in.");
+ }
+ $("signupTab").onclick=()=>show("signup");
+ $("loginTab").onclick=()=>show("login");
+ $("recoverTab").onclick=()=>show("recover");
+ forms.signup.onsubmit=async event=>{
+  event.preventDefault();message("Creating your account…");
+  try{
+   const data=await api("/api/v2/auth/register",{username:$("username").value.trim(),display_name:$("displayName").value.trim(),email:$("email").value.trim(),password:$("password").value});
+   pendingProfile=data.profile;
+   codesText=data.recovery_codes.join("\n");$("codes").textContent=codesText;
+   Object.values(forms).forEach(form=>form.classList.add("hidden"));
+   $("recoveryCodes").classList.remove("hidden");message("Account created. Save your recovery codes now.");
+   $("signup").reset();
+  }catch(error){message(error.message,true);}
+ };
+ forms.login.onsubmit=async event=>{
+  event.preventDefault();message("Signing in…");
+  try{const data=await api("/api/v2/auth/login",{username:$("loginUsername").value.trim(),password:$("loginPassword").value});forms.login.reset();signedIn(data.profile);}
+  catch(error){message(error.message,true);}
+ };
+ forms.recover.onsubmit=async event=>{
+  event.preventDefault();message("Checking recovery code…");
+  try{const data=await api("/api/v2/auth/recover",{username:$("recoverUsername").value.trim(),recovery_code:$("recoveryCode").value,new_password:$("newPassword").value});forms.recover.reset();show("login");message(data.message);}
+  catch(error){message(error.message,true);}
+ };
+ $("copyCodes").onclick=async()=>{
+  try{await navigator.clipboard.writeText(codesText);message("Recovery codes copied. Store them somewhere safe.");}
+  catch{message("Copy isn't available here. Select and copy the codes manually.",true);}
+ };
+ $("continue").onclick=()=>{codesText="";$("codes").textContent="";$("recoveryCodes").classList.add("hidden");if(pendingProfile){signedIn(pendingProfile);pendingProfile=null;}else show("login");};
+ $("logout").onclick=async()=>{try{await api("/api/v2/auth/logout",{});$("signupTab").parentElement.classList.remove("hidden");show("login");message("You have been logged out.");}catch(error){message(error.message,true);}};
+ show("signup");
+ api("/api/v2/auth/me").then(data=>{if(data.profile)signedIn(data.profile);}).catch(()=>{});
+})();
+</script>
+</body>
+</html>

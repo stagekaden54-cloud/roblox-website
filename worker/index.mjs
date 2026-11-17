@@ -1,3 +1,5 @@
+import { handleD1Auth } from "./auth-d1.mjs";
+
 const JSON_HEADERS = {
   "content-type": "application/json; charset=utf-8",
   "cache-control": "no-store",
@@ -374,12 +376,18 @@ async function handleGames(request, env, path) {
 async function route(request, env) {
   const url = new URL(request.url);
   if (url.pathname === "/api/health" || url.pathname === "/api/v1/health") {
-    return json({ status: "ok", service: "block16-api", configured: isConfigured(env) });
+    return json({ status: "ok", service: "block16-api", configured: Boolean(env.DB || isConfigured(env)) });
   }
   if (!url.pathname.startsWith("/api/")) return env.ASSETS.fetch(request);
-  if (!isConfigured(env)) return apiError("The backend is not configured yet.", 503, "BACKEND_NOT_CONFIGURED");
   if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders() });
   if (!["GET", "POST", "PATCH"].includes(request.method)) return apiError("Method not allowed.", 405, "METHOD_NOT_ALLOWED");
+
+  // Keep the D1 username/password flow isolated from the existing Supabase routes.
+  // It must run before the Supabase configuration check so D1-only previews work.
+  const d1AuthResponse = await handleD1Auth(request, env, url.pathname);
+  if (d1AuthResponse) return d1AuthResponse;
+
+  if (!isConfigured(env)) return apiError("The backend is not configured yet.", 503, "BACKEND_NOT_CONFIGURED");
 
   const authResponse = await handleAuth(request, env, url.pathname);
   if (authResponse) return authResponse;
