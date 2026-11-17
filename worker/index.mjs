@@ -1,4 +1,4 @@
-const JSON_HEADERS = {
+import { handleD1Auth } from "./auth-d1.mjs";\n\nconst JSON_HEADERS = {
   "content-type": "application/json; charset=utf-8",
   "cache-control": "no-store",
 };
