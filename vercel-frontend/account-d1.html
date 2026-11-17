@@ -30,7 +30,7 @@ main{width:min(900px,calc(100% - 24px));margin:28px auto}.panel{background:#f4f7
 <small>3–20 letters, numbers, or underscores.</small>
 <label for="displayName">Display name (optional)</label><input id="displayName" maxlength="40">
 <label for="email">Email (optional)</label><input id="email" type="email" autocomplete="email">
-<small>You can leave this blank. No email confirmation is required.</small>
+<small>You can leave this blank. No confirmation is required. Email is not currently used for password recovery; keep your recovery codes.</small>
 <label for="password">Password</label><input id="password" type="password" autocomplete="new-password" minlength="12" maxlength="128" required>
 <small>Use at least 12 characters.</small>
 <button class="action" type="submit">Create account</button>
@@ -69,6 +69,7 @@ main{width:min(900px,calc(100% - 24px));margin:28px auto}.panel{background:#f4f7
  const $ = id => document.getElementById(id);
  const notice = $("notice");
  let codesText = "";
+ let pendingProfile = null;
  const forms = {signup:$("signup"),login:$("login"),recover:$("recover")};
  function message(text, error=false){notice.textContent=text;notice.hidden=!text;notice.classList.toggle("error",error);}
  function show(mode){
@@ -97,6 +98,7 @@ main{width:min(900px,calc(100% - 24px));margin:28px auto}.panel{background:#f4f7
   event.preventDefault();message("Creating your account…");
   try{
    const data=await api("/api/v2/auth/register",{username:$("username").value.trim(),display_name:$("displayName").value.trim(),email:$("email").value.trim(),password:$("password").value});
+   pendingProfile=data.profile;
    codesText=data.recovery_codes.join("\n");$("codes").textContent=codesText;
    Object.values(forms).forEach(form=>form.classList.add("hidden"));
    $("recoveryCodes").classList.remove("hidden");message("Account created. Save your recovery codes now.");
@@ -117,7 +119,7 @@ main{width:min(900px,calc(100% - 24px));margin:28px auto}.panel{background:#f4f7
   try{await navigator.clipboard.writeText(codesText);message("Recovery codes copied. Store them somewhere safe.");}
   catch{message("Copy isn't available here. Select and copy the codes manually.",true);}
  };
- $("continue").onclick=()=>{codesText="";$("codes").textContent="";$("recoveryCodes").classList.add("hidden");show("login");};
+ $("continue").onclick=()=>{codesText="";$("codes").textContent="";$("recoveryCodes").classList.add("hidden");if(pendingProfile){signedIn(pendingProfile);pendingProfile=null;}else show("login");};
  $("logout").onclick=async()=>{try{await api("/api/v2/auth/logout",{});$("signupTab").parentElement.classList.remove("hidden");show("login");message("You have been logged out.");}catch(error){message(error.message,true);}};
  show("signup");
  api("/api/v2/auth/me").then(data=>{if(data.profile)signedIn(data.profile);}).catch(()=>{});
