@@ -374,7 +374,7 @@ async function handleGames(request, env, path) {
 async function route(request, env) {
   const url = new URL(request.url);
   if (url.pathname === "/api/health" || url.pathname === "/api/v1/health") {
-    return json({ status: "ok", service: "block16-api", configured: isConfigured(env) });
+    return json({ status: "ok", service: "block16-api", configured: Boolean(env.DB || isConfigured(env)) });
   }
   if (!url.pathname.startsWith("/api/")) return env.ASSETS.fetch(request);
   if (!isConfigured(env)) return apiError("The backend is not configured yet.", 503, "BACKEND_NOT_CONFIGURED");
