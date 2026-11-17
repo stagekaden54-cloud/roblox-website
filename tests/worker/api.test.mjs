@@ -210,6 +210,9 @@ test("published games endpoint reads from D1 when a D1 binding is available", as
     prepare(sql) {
       statements.push(sql);
       return {
+        // D1 supports .all() directly on a prepared statement when no
+        // placeholders need binding, as in the catalogue list query.
+        all: async () => ({ results: rows }),
         bind(...values) {
           return {
             first: async () => rows[0],
