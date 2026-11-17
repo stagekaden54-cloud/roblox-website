@@ -14,7 +14,7 @@ The new API is deliberately separate from the existing `/api/v1/auth/*` endpoint
 ## Account behavior
 
 - Registration requires a 3–20 character username and a password of 12–128 characters.
-- Email is optional and is stored as `NULL` when omitted.
+- Email is optional and is stored as `NULL` when omitted. It is not currently used for password recovery because an unverified address must not be treated as proof of account ownership.
 - Registration does not send email or require email confirmation.
 - Login uses username and password.
 - Each account receives ten random, one-time recovery codes. The plaintext codes are returned only at registration; only SHA-256 hashes are stored.
@@ -38,6 +38,6 @@ This PR intentionally does not create a database, add a D1 binding, run a remote
 ## Important limitations before launch
 
 - This is a separate account store; it does not migrate or link existing Supabase users.
-- Players who skip email must keep their recovery codes. If they lose their password and all unused recovery codes, this implementation has no alternate recovery channel.
+- Every player must keep their recovery codes, whether or not they provide an email. If they lose their password and all unused recovery codes, this implementation has no alternate recovery channel.
 - A scheduled cleanup task should later prune expired sessions and old rate-limit buckets.
 - The current page is a development preview. The live `/account.html` flow is unchanged until a separately reviewed cutover.
