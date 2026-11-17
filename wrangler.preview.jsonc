@@ -1,0 +1,21 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "block16-auth-preview",
+  "main": "./worker/index.mjs",
+  "compatibility_date": "2026-11-15",
+  "assets": {
+    "directory": "./vercel-frontend",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "block16-accounts-dev",
+      "database_id": "4be685d4-b03f-4e66-a6ae-dd634056f512"
+    }
+  ],
+  "vars": {
+    "SUPABASE_URL": "https://sggdbfqptkvonnxqitjh.supabase.co"
+  }
+}
